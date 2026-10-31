@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
 @theme {
-  /* paleta z makiety (strona 1 PDF) */
   --color-ink: #0a0d15;
   --color-navy: #05172f;
   --color-slate: #2d3c4c;
@@ -36,7 +35,6 @@ body {
   color: var(--color-paper);
 }
 
-/* wielkie "duchowe" tytuły sekcji — sam obrys liter */
 .ghost-title {
   color: transparent;
   -webkit-text-stroke: 1.5px color-mix(in srgb, var(--color-paper) 22%, transparent);
@@ -46,7 +44,6 @@ body {
   white-space: nowrap;
 }
 
-/* ziarno / szum na całości — subtelna tekstura */
 .noise::after {
   content: "";
   position: fixed;

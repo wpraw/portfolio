@@ -1,15 +1,68 @@
-/* Tech Text — skopiowane z React Bits (https://reactbits.dev/text-animations/tech-text,
-   https://github.com/DavidHDev/react-bits), wersja JS + Tailwind.
-   Licencja: MIT + Commons Clause, (c) David Haz — można używać w projektach,
-   nie wolno sprzedawać samego komponentu.
-   Zmiany względem oryginału: usunięte 'use client' oraz nowy prop `frameRef` —
-   canvas zajmuje cały kontener (np. sekcję, więc litery można przeciągać wszędzie),
-   a napis jest układany w prostokącie wskazanego elementu, bez marginesu 5%.
-   Prop `hoverPadding` — kursor przejmuje soczewkę (i przerywa automatyczny sweep)
-   tylko w obrębie napisu powiększonego o ten margines; przeciąganie nadal działa
-   na całym kontenerze. */
+import { useEffect, useRef, type CSSProperties, type RefObject } from 'react';
 
-import { useEffect, useRef } from 'react';
+export interface TechTextProps {
+  text?: string;
+  fontFamily?: string;
+  fontWeight?: number;
+  fontSize?: number;
+  letterSpacing?: number;
+  color?: string;
+  accentColor?: string;
+  align?: 'left' | 'center' | 'right';
+  reach?: number;
+  softness?: number;
+  dashLength?: number;
+  dashGap?: number;
+  strokeWidth?: number;
+  lineStyle?: 'dashed' | 'solid';
+  reveal?: 'letter' | 'area' | 'none';
+  specks?: number;
+  selection?: boolean;
+  labels?: boolean;
+  draggable?: boolean;
+  bounce?: number;
+  sweep?: boolean;
+  speed?: number;
+  clickKick?: boolean;
+  intro?: 'none' | 'type' | 'metrics' | 'assemble';
+  introDuration?: number;
+  guides?: boolean;
+  /** element, w którego prostokącie układany jest napis (domyślnie cały kontener) */
+  frameRef?: RefObject<HTMLElement | null>;
+  /** margines wokół napisu, w którym kursor przejmuje soczewkę */
+  hoverPadding?: number;
+  className?: string;
+  style?: CSSProperties;
+}
+
+type Settings = Required<Omit<TechTextProps, 'className' | 'style' | 'frameRef'>> & Pick<TechTextProps, 'frameRef'>;
+type Vec = { x: number; y: number };
+type Box = { x1: number; y1: number; x2: number; y2: number };
+type Sprite = { image: HTMLCanvasElement; left: number; top: number };
+type GlyphBase = { char: string; x: number; box: Box };
+type Cell = { x: number; y: number; size: number; dx: number; dy: number; start: number; land: number };
+type Glyph = GlyphBase & {
+  offset: Vec;
+  velocity: Vec;
+  outline: number;
+  shown: number;
+  cells: Cell[] | null;
+  assembled: number;
+  index: number;
+  fill: Sprite;
+  dashes: Sprite;
+};
+type Word = {
+  size: number;
+  baseline: number;
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+  lines: { y: number; label: string }[];
+  bands: { y0: number; y1: number; up: boolean; order: number }[];
+};
+type Kick = { index: number; at: number; velocity: number };
 
 const LABEL_FONT = '10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
 const FALLOFF_STEPS = 8;
@@ -18,16 +71,16 @@ const INHERIT = /^(currentcolor|inherit)$/i;
 const INTRO_DELAY = 0.15;
 const KICK_DECAY = 0.62;
 
-const approach = (current, target, dt, seconds) => current + (target - current) * (1 - Math.exp(-dt / seconds));
+const approach = (current: number, target: number, dt: number, seconds: number) => current + (target - current) * (1 - Math.exp(-dt / seconds));
 
-const clamp01 = value => Math.min(1, Math.max(0, Number(value) || 0));
+const clamp01 = (value: number) => Math.min(1, Math.max(0, Number(value) || 0));
 
-const smoothstep = (edge0, edge1, value) => {
+const smoothstep = (edge0: number, edge1: number, value: number) => {
   const t = clamp01((value - edge0) / (edge1 - edge0));
   return t * t * (3 - 2 * t);
 };
 
-const noise = (...values) => {
+const noise = (...values: number[]) => {
   let h = 2166136261;
   for (const value of values) {
     h = Math.imul(h ^ (value | 0), 16777619);
@@ -38,7 +91,7 @@ const noise = (...values) => {
   return (h >>> 0) / 4294967296;
 };
 
-const signed = value => (value > 0 ? `+${value}` : value < 0 ? `−${-value}` : '0');
+const signed = (value: number) => (value > 0 ? `+${value}` : value < 0 ? `−${-value}` : '0');
 
 const TechText = ({
   text = 'React Bits',
@@ -71,10 +124,10 @@ const TechText = ({
   hoverPadding = Infinity,
   className = '',
   style
-}) => {
-  const containerRef = useRef(null);
-  const canvasRef = useRef(null);
-  const settingsRef = useRef(null);
+}: TechTextProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const settingsRef = useRef<Settings | null>(null);
   const wakeRef = useRef(() => {});
 
   useEffect(() => {
@@ -129,8 +182,8 @@ const TechText = ({
     let alive = true;
     let layoutKey = '';
     let requestedFont = '';
-    let word = null;
-    let glyphs = [];
+    let word: Word | null = null;
+    let glyphs: Glyph[] = [];
     let presence = 0;
     let clock = 0;
     let pulse = 0;
@@ -138,11 +191,11 @@ const TechText = ({
     let dragging = -1;
     let cursor = '';
     let introClock = 0;
-    let introKind = '';
+    let introKind: string = '';
     let introducing = false;
     let fontsReady = !document.fonts;
     let guideAlpha = 0;
-    const kicks = [];
+    const kicks: Kick[] = [];
     const press = { x: 0, y: 0, time: 0, index: -1 };
     const pointer = { x: 0, y: 0, inside: false };
     const grab = { x: 0, y: 0 };
@@ -159,23 +212,23 @@ const TechText = ({
       refreshFonts();
     };
 
-    const family = s => s.fontFamily || getComputedStyle(container).fontFamily || 'sans-serif';
-    const fontFor = (s, size) => `${s.fontWeight} ${size}px ${family(s)}`;
+    const family = (s: Settings) => s.fontFamily || getComputedStyle(container).fontFamily || 'sans-serif';
+    const fontFor = (s: Settings, size: number) => `${s.fontWeight} ${size}px ${family(s)}`;
 
-    const palette = s => {
+    const palette = (s: Settings) => {
       const current = getComputedStyle(container).color || '#000000';
-      const pick = value => (!value || INHERIT.test(String(value).trim()) ? current : value);
+      const pick = (value: string) => (!value || INHERIT.test(String(value).trim()) ? current : value);
       return { ink: pick(s.color), accent: pick(s.accentColor) };
     };
 
-    const setFont = (target, s, size) => {
+    const setFont = (target: CanvasRenderingContext2D, s: Settings, size: number) => {
       target.font = fontFor(s, size);
       if ('letterSpacing' in target) target.letterSpacing = `${s.letterSpacing * size}px`;
       target.textAlign = 'left';
       target.textBaseline = 'alphabetic';
     };
 
-    const sprite = (s, view, glyph, stroke, ink) => {
+    const sprite = (s: Settings, view: Word, glyph: GlyphBase, stroke: boolean, ink: string): Sprite => {
       const pad = Math.ceil(s.strokeWidth * 2 + 4);
       const left = glyph.box.x1 - pad;
       const top = glyph.box.y1 - pad;
@@ -209,17 +262,17 @@ const TechText = ({
 
     // prostokąt na napis: element z frameRef albo cały kontener. Pozycja z offsetów,
     // nie z getBoundingClientRect — transformacje (np. animacja wejścia) jej nie przesuwają
-    const layoutOffset = node => {
+    const layoutOffset = (node: HTMLElement | null) => {
       let x = 0;
       let y = 0;
-      for (; node; node = node.offsetParent) {
+      for (; node; node = node.offsetParent as HTMLElement | null) {
         x += node.offsetLeft;
         y += node.offsetTop;
       }
       return { x, y };
     };
 
-    const frameBox = s => {
+    const frameBox = (s: Settings) => {
       const el = s.frameRef?.current;
       if (!el) return { x: 0, y: 0, w: width, h: height, framed: false };
       const a = layoutOffset(el);
@@ -227,7 +280,7 @@ const TechText = ({
       return { x: a.x - b.x, y: a.y - b.y, w: el.offsetWidth, h: el.offsetHeight, framed: true };
     };
 
-    const ensureLayout = (s, ink) => {
+    const ensureLayout = (s: Settings, ink: string): Word => {
       const box = frameBox(s);
       const key = [
         box.x,
@@ -284,7 +337,7 @@ const TechText = ({
       const bottom = baseline + m.actualBoundingBoxDescent;
       const inkTop = Math.min(top, capHeight) - 2;
       const inkBottom = Math.max(bottom, baseline) + 2;
-      const next = {
+      const next: Word = {
         size,
         baseline,
         left: x - m.actualBoundingBoxLeft,
@@ -345,7 +398,7 @@ const TechText = ({
       return next;
     };
 
-    const glyphAt = (x, y) => {
+    const glyphAt = (x: number, y: number) => {
       if (!word || y < word.top - 24 || y > word.bottom + 24) return -1;
       let best = -1;
       let bestDistance = Infinity;
@@ -361,7 +414,14 @@ const TechText = ({
       return bestDistance < 28 ? best : -1;
     };
 
-    const falloff = (target, cx, cy, radius, strength, softness) => {
+    const falloff = (
+      target: CanvasRenderingContext2D,
+      cx: number,
+      cy: number,
+      radius: number,
+      strength: number,
+      softness: number
+    ) => {
       const inner = Math.min(1, Math.max(0, 1 - softness));
       const gradient = target.createRadialGradient(cx, cy, 0, cx, cy, radius);
       gradient.addColorStop(0, `rgba(0, 0, 0, ${strength})`);
@@ -378,7 +438,7 @@ const TechText = ({
       return gradient;
     };
 
-    const blit = (target, art, dx, dy, originX, originY) => {
+    const blit = (target: CanvasRenderingContext2D, art: Sprite, dx: number, dy: number, originX: number, originY: number) => {
       target.drawImage(
         art.image,
         Math.round((art.left + dx) * dpr - originX),
@@ -386,7 +446,7 @@ const TechText = ({
       );
     };
 
-    const drawReveal = s => {
+    const drawReveal = (s: Settings) => {
       const radius = s.reach * dpr;
       const cx = lens.x * dpr;
       const cy = lens.y * dpr;
@@ -419,9 +479,9 @@ const TechText = ({
       ctx.globalAlpha = 1;
     };
 
-    const crisp = value => (Math.round(value * dpr) + 0.5) / dpr;
+    const crisp = (value: number) => (Math.round(value * dpr) + 0.5) / dpr;
 
-    const perimeterPoint = (distance, w, h) => {
+    const perimeterPoint = (distance: number, w: number, h: number): [number, number, number, number] => {
       let d = ((distance % (2 * (w + h))) + 2 * (w + h)) % (2 * (w + h));
       if (d < w) return [frame.x1 + d, frame.y1, 0, -1];
       d -= w;
@@ -432,7 +492,7 @@ const TechText = ({
       return [frame.x1, frame.y2 - d, -1, 0];
     };
 
-    const drawSpecks = (s, a, accent) => {
+    const drawSpecks = (s: Settings, a: number, accent: string) => {
       const w = frame.x2 - frame.x1;
       const h = frame.y2 - frame.y1;
       if (w < 2 || h < 2) return;
@@ -481,7 +541,7 @@ const TechText = ({
       ctx.globalAlpha = 1;
     };
 
-    const drawFrame = (s, accent) => {
+    const drawFrame = (s: Settings, accent: string) => {
       const glyph = glyphs[frame.index];
       if (!glyph || frame.alpha < 0.01) return;
       const a = frame.alpha;
@@ -545,7 +605,7 @@ const TechText = ({
       ctx.globalAlpha = 1;
     };
 
-    const drawLines = (s, view, accent, alpha, growth) => {
+    const drawLines = (s: Settings, view: Word, accent: string, alpha: number, growth: (k: number) => number) => {
       const pad = Math.max(12, view.size * 0.12);
       const x1 = Math.round(view.left - pad);
       const x2 = Math.round(view.right + pad);
@@ -580,14 +640,14 @@ const TechText = ({
       ctx.globalAlpha = 1;
     };
 
-    const ensureCells = (glyph, view) => {
+    const ensureCells = (glyph: Glyph, view: Word) => {
       if (glyph.cells) return glyph.cells;
       const art = glyph.fill;
       const size = Math.max(3, Math.round(view.size / 26));
       const w = art.image.width;
       const h = art.image.height;
       const source = art.image.getContext('2d');
-      const cells = [];
+      const cells: Cell[] = [];
       glyph.cells = cells;
       glyph.assembled = 0;
       if (!source || w < 2 || h < 2) return cells;
@@ -627,13 +687,13 @@ const TechText = ({
       return cells;
     };
 
-    const cellRect = (x, y, size) => {
+    const cellRect = (x: number, y: number, size: number) => {
       const left = Math.round(x * dpr);
       const top = Math.round(y * dpr);
       return [left, top, Math.round((x + size) * dpr) - left, Math.round((y + size) * dpr) - top];
     };
 
-    const drawAssembling = (glyph, progress, accent) => {
+    const drawAssembling = (glyph: Glyph, progress: number, accent: string) => {
       const cells = glyph.cells || [];
       ctx.save();
       ctx.beginPath();
@@ -664,14 +724,14 @@ const TechText = ({
       ctx.globalAlpha = 1;
     };
 
-    const drawFilling = (glyph, lead, progress, view) => {
+    const drawFilling = (glyph: Glyph, lead: number, progress: number, view: Word) => {
       const art = glyph.fill;
       const left = Math.floor(art.left * dpr);
       const top = Math.floor(art.top * dpr);
       const w = art.image.width + 2;
       const h = art.image.height + 2;
       const fill = clamp01((progress - 0.24 - 0.28 * lead) / 0.48);
-      const rects = [];
+      const rects: [number, number][] = [];
       for (const band of view.bands) {
         const amount = smoothstep(0.3 * band.order, 0.3 * band.order + 0.4, fill);
         if (amount <= 0) continue;
@@ -702,7 +762,7 @@ const TechText = ({
       ctx.globalAlpha = 1;
     };
 
-    const kick = index => {
+    const kick = (index: number) => {
       const strength = (word ? word.size : 120) * 11;
       kicks.push({ index, at: pulse, velocity: strength });
       for (let d = 1; d < glyphs.length; d++) {
@@ -715,7 +775,7 @@ const TechText = ({
       wakeRef.current();
     };
 
-    const tick = now => {
+    const tick = (now: number) => {
       raf = 0;
       const s = settingsRef.current;
       if (!s) return;
@@ -931,12 +991,12 @@ const TechText = ({
       wake();
     };
 
-    const locate = e => {
+    const locate = (e: PointerEvent) => {
       const rect = container.getBoundingClientRect();
       pointer.x = e.clientX - rect.left;
       pointer.y = e.clientY - rect.top;
     };
-    const onMove = e => {
+    const onMove = (e: PointerEvent) => {
       locate(e);
       pointer.inside = true;
       wake();
@@ -946,7 +1006,7 @@ const TechText = ({
       pointer.inside = false;
       wake();
     };
-    const onDown = e => {
+    const onDown = (e: PointerEvent) => {
       locate(e);
       pointer.inside = true;
       const s = settingsRef.current;
@@ -964,7 +1024,7 @@ const TechText = ({
       }
       wake();
     };
-    const onUp = e => {
+    const onUp = (e: PointerEvent) => {
       if (dragging >= 0) {
         dragging = -1;
         container.releasePointerCapture?.(e.pointerId);

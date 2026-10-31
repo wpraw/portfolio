@@ -1,14 +1,4 @@
-/* Lanyard — skopiowane z React Bits (https://reactbits.dev/c/components/lanyard,
-   https://github.com/DavidHDev/react-bits), wersja JS + Tailwind.
-   Licencja: MIT + Commons Clause, (c) David Haz — można używać w projektach,
-   nie wolno sprzedawać samego komponentu.
-   Zmiany względem oryginału: usunięte 'use client' oraz nowy prop `inertia` —
-   karta reaguje na przesuwanie się samego canvasa po ekranie (np. przy poziomym
-   scrollu): zostaje w tyle za ruchem i wychyla się przy hamowaniu. 0 = wyłączone.
-   Wydajność: przy kontenerze szerszym niż okno renderowany jest tylko wycinek pod
-   oknem (camera.setViewOffset), a rozdzielczość renderu ma limit PIXEL_BUDGET. */
-
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type CSSProperties } from 'react';
 import * as THREE from 'three';
 
 const CARD_SIZES = {
@@ -155,16 +145,81 @@ const METALS = {
   graphite: { color: '#4d4f55', roughness: 0.28 }
 };
 
-const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
-const mix = (a, b, t) => a + (b - a) * t;
+type RGB = [number, number, number];
+type Orientation = keyof typeof CARD_SIZES;
+type ImageFit = 'cover' | 'contain';
 
-const parseColor = (value, fallback) => {
+export interface LanyardProps {
+  frontImage?: string;
+  backImage?: string;
+  imageFit?: ImageFit;
+  cardColor?: string;
+  orientation?: Orientation;
+  finish?: keyof typeof FINISHES;
+  cornerRadius?: number;
+  size?: number;
+  anchor?: keyof typeof ANCHORS;
+  strapLength?: number;
+  strapImage?: string;
+  strapColor?: string;
+  strapWidth?: number;
+  metal?: keyof typeof METALS;
+  gravity?: number;
+  damping?: number;
+  elasticity?: number;
+  breeze?: number;
+  /** reakcja karty na przesuwanie się canvasa po ekranie; 0 = wyłączone */
+  inertia?: number;
+  interactive?: boolean;
+  intro?: boolean;
+  className?: string;
+  style?: CSSProperties;
+}
+
+type Settings = Required<Omit<LanyardProps, 'className' | 'style' | 'frontImage' | 'backImage' | 'strapImage'>> &
+  Pick<LanyardProps, 'frontImage' | 'backImage' | 'strapImage'>;
+
+type CardLayout = ReturnType<typeof cardLayout>;
+type Simulation = ReturnType<typeof createSimulation>;
+type Body = Simulation['body'];
+type Grab = {
+  local: THREE.Vector3;
+  rotation: THREE.Quaternion;
+  reach: number;
+  from: THREE.Vector3;
+  target: THREE.Vector3;
+};
+type Physics = {
+  gravity: number;
+  hold: number;
+  stiffness: number;
+  spring: number;
+  bandDamping: number;
+  linearDrag: number;
+  angularDrag: number;
+  air: number;
+  broadside: number;
+  spinAir: number;
+  nodeDrag: number;
+  nodeAir: number;
+  twist: number;
+  twistDamping: number;
+  grip: number;
+  gripDamping: number;
+  breeze: number;
+  push: number;
+};
+
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+const mix = (a: number, b: number, t: number) => a + (b - a) * t;
+
+const parseColor = (value: string, fallback: RGB): RGB => {
   try {
     const ctx = document.createElement('canvas').getContext('2d');
     if (!ctx) return fallback;
     ctx.fillStyle = '#000000';
     ctx.fillStyle = value;
-    const resolved = ctx.fillStyle;
+    const resolved = ctx.fillStyle as string;
     if (resolved.startsWith('#')) {
       const n = parseInt(resolved.slice(1), 16);
       return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
@@ -177,11 +232,11 @@ const parseColor = (value, fallback) => {
   }
 };
 
-const luminance = rgb => 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
-const toCss = (rgb, alpha = 1) =>
+const luminance = (rgb: RGB) => 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
+const toCss = (rgb: RGB, alpha = 1) =>
   `rgba(${Math.round(rgb[0] * 255)}, ${Math.round(rgb[1] * 255)}, ${Math.round(rgb[2] * 255)}, ${alpha})`;
 
-const seeded = start => {
+const seeded = (start: number) => {
   let state = start >>> 0;
   return () => {
     state = (state + 0x6d2b79f5) >>> 0;
@@ -192,7 +247,7 @@ const seeded = start => {
   };
 };
 
-const traceRoundedRect = (path, x, y, width, height, radius) => {
+const traceRoundedRect = (path: THREE.Path, x: number, y: number, width: number, height: number, radius: number) => {
   const r = Math.max(0, Math.min(radius, width / 2, height / 2));
   const k = r * 0.4477;
   path.moveTo(x + r, y);
@@ -206,11 +261,11 @@ const traceRoundedRect = (path, x, y, width, height, radius) => {
   path.bezierCurveTo(x, y + k, x + k, y, x + r, y);
 };
 
-const loadImage = (cache, url) => {
+const loadImage = (cache: Map<string, Promise<HTMLImageElement | null>>, url?: string) => {
   if (!url) return Promise.resolve(null);
   const cached = cache.get(url);
   if (cached) return cached;
-  const promise = new Promise(resolve => {
+  const promise = new Promise<HTMLImageElement | null>(resolve => {
     const image = new Image();
     image.crossOrigin = 'anonymous';
     image.decoding = 'async';
@@ -222,7 +277,7 @@ const loadImage = (cache, url) => {
   return promise;
 };
 
-const cardLayout = (orientation, cornerRadius) => {
+const cardLayout = (orientation: Orientation, cornerRadius: number) => {
   const [width, height] = CARD_SIZES[orientation] || CARD_SIZES.portrait;
   const radius = mix(0.03, Math.min(width, height) * 0.2, clamp(cornerRadius, 0, 1));
   const slot = { width: 0.34, height: 0.07, y: height / 2 - 0.13 };
@@ -230,7 +285,7 @@ const cardLayout = (orientation, cornerRadius) => {
   return { width, height, radius, slot, ringY, hangY: ringY + RING_RADIUS };
 };
 
-const buildCardGeometry = layout => {
+const buildCardGeometry = (layout: CardLayout) => {
   const { width, height, radius, slot } = layout;
   const outline = new THREE.Shape();
   traceRoundedRect(
@@ -270,7 +325,7 @@ const buildCardGeometry = layout => {
   return { body, face };
 };
 
-const buildClampGeometry = width => {
+const buildClampGeometry = (width: number) => {
   const shape = new THREE.Shape();
   const w = width * 1.16;
   traceRoundedRect(shape, -w / 2 + 0.014, -CLAMP_BODY / 2 + 0.014, w - 0.028, CLAMP_BODY - 0.028, 0.024);
@@ -286,13 +341,13 @@ const buildClampGeometry = width => {
   return geometry;
 };
 
-const buildBandGeometry = count => {
+const buildBandGeometry = (count: number) => {
   const columns = BAND_COLUMNS.length;
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(count * columns * 3), 3));
   geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(count * columns * 3), 3));
   geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(count * columns * 2), 2));
-  const index = [];
+  const index: number[] = [];
   for (let i = 0; i < count - 1; i++) {
     for (let c = 0; c < columns - 1; c++) {
       const a = i * columns + c;
@@ -303,12 +358,12 @@ const buildBandGeometry = count => {
   return geometry;
 };
 
-const buildEnvironment = renderer => {
+const buildEnvironment = (renderer: THREE.WebGLRenderer) => {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0.035, 0.035, 0.04);
   const geometry = new THREE.PlaneGeometry(1, 1);
-  const materials = [];
-  const panel = (intensity, position, scale, rotation = 0) => {
+  const materials: THREE.Material[] = [];
+  const panel = (intensity: number, position: [number, number, number], scale: [number, number], rotation = 0) => {
     const material = new THREE.MeshBasicMaterial({
       color: new THREE.Color(intensity, intensity, intensity),
       side: THREE.DoubleSide
@@ -337,7 +392,7 @@ const buildEnvironment = renderer => {
   return target;
 };
 
-const makeCanvasTexture = (canvas, anisotropy) => {
+const makeCanvasTexture = (canvas: HTMLCanvasElement, anisotropy: number) => {
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.anisotropy = anisotropy;
@@ -353,7 +408,7 @@ const buildGrainTexture = () => {
   if (!ctx) return new THREE.CanvasTexture(canvas);
   const random = seeded(7);
   const field = Float32Array.from({ length: size * size }, () => random());
-  const height = (x, y) => {
+  const height = (x: number, y: number) => {
     let sum = 0;
     for (let j = -1; j <= 1; j++) {
       for (let i = -1; i <= 1; i++) sum += field[((y + j + size) % size) * size + ((x + i + size) % size)];
@@ -386,8 +441,8 @@ const buildWeaveTexture = () => {
   const threads = 8;
   const random = seeded(19);
   const fiber = Float32Array.from({ length: size * size }, () => random());
-  const profile = f => Math.sqrt(Math.max(0, 1 - 4 * f * f));
-  const height = (x, y) => {
+  const profile = (f: number) => Math.sqrt(Math.max(0, 1 - 4 * f * f));
+  const height = (x: number, y: number) => {
     const px = ((x % size) + size) % size;
     const py = ((y % size) + size) % size;
     const u = (px / size) * threads;
@@ -424,14 +479,14 @@ const buildWeaveTexture = () => {
   return texture;
 };
 
-const drawFitted = (ctx, image, width, height, fit) => {
+const drawFitted = (ctx: CanvasRenderingContext2D, image: HTMLImageElement, width: number, height: number, fit: ImageFit) => {
   const scale = (fit === 'contain' ? Math.min : Math.max)(width / image.width, height / image.height);
   const w = image.width * scale;
   const h = image.height * scale;
   ctx.drawImage(image, (width - w) / 2, (height - h) / 2, w, h);
 };
 
-const paintFace = (canvas, image, color, fit) => {
+const paintFace = (canvas: HTMLCanvasElement, image: HTMLImageElement | null, color: RGB, fit: ImageFit) => {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   ctx.fillStyle = toCss(color);
@@ -439,7 +494,7 @@ const paintFace = (canvas, image, color, fit) => {
   if (image) drawFitted(ctx, image, canvas.width, canvas.height, fit);
 };
 
-const paintStrap = (canvas, image, color) => {
+const paintStrap = (canvas: HTMLCanvasElement, image: HTMLImageElement | null, color: RGB) => {
   const across = 192;
   const along = image ? Math.max(64, Math.round((image.width / image.height) * across)) : across * 2;
   canvas.width = across;
@@ -456,7 +511,7 @@ const paintStrap = (canvas, image, color) => {
     ctx.restore();
     return along / across;
   }
-  const ink = luminance(color) > 0.5 ? [0, 0, 0] : [1, 1, 1];
+  const ink: RGB = luminance(color) > 0.5 ? [0, 0, 0] : [1, 1, 1];
   ctx.fillStyle = toCss(ink, 0.05);
   for (let y = 0; y < along; y += 4) ctx.fillRect(0, y, across, 1);
   ctx.fillStyle = toCss(ink, 0.2);
@@ -488,7 +543,7 @@ const createSimulation = () => {
       inverseInertia: new THREE.Vector3(1, 1, 1),
       hang: new THREE.Vector3()
     },
-    grab: null,
+    grab: null as Grab | null,
     turn: 0,
     twist: 0,
     twistRaw: 0,
@@ -509,14 +564,14 @@ const scratch = {
   r: new THREE.Quaternion()
 };
 
-const applyInverseInertia = (body, vector, out) => {
+const applyInverseInertia = (body: Body, vector: THREE.Vector3, out: THREE.Vector3) => {
   scratch.r.copy(body.quaternion).invert();
   out.copy(vector).applyQuaternion(scratch.r);
   out.set(out.x * body.inverseInertia.x, out.y * body.inverseInertia.y, out.z * body.inverseInertia.z);
   return out.applyQuaternion(body.quaternion);
 };
 
-const rotateBody = (q, w) => {
+const rotateBody = (q: THREE.Quaternion, w: THREE.Vector3) => {
   const { x: qx, y: qy, z: qz, w: qw } = q;
   q.x += 0.5 * (w.x * qw + w.y * qz - w.z * qy);
   q.y += 0.5 * (w.y * qw + w.z * qx - w.x * qz);
@@ -525,17 +580,17 @@ const rotateBody = (q, w) => {
   q.normalize();
 };
 
-const bodyWeight = (body, r, normal) => {
+const bodyWeight = (body: Body, r: THREE.Vector3, normal: THREE.Vector3) => {
   const rn = scratch.c.crossVectors(r, normal);
   return 1 / body.mass + rn.dot(applyInverseInertia(body, rn, scratch.d));
 };
 
-const pushBody = (body, r, impulse) => {
+const pushBody = (body: Body, r: THREE.Vector3, impulse: THREE.Vector3) => {
   body.position.addScaledVector(impulse, 1 / body.mass);
   rotateBody(body.quaternion, applyInverseInertia(body, scratch.e.crossVectors(r, impulse), scratch.f));
 };
 
-const solveSegment = (sim, i, h, physics) => {
+const solveSegment = (sim: Simulation, i: number, h: number, physics: Physics) => {
   const { nodes, body } = sim;
   const a = nodes[i];
   const wa = i === 0 ? 0 : NODE_WEIGHT;
@@ -566,7 +621,7 @@ const solveSegment = (sim, i, h, physics) => {
   else b.addScaledVector(normal, -lambda * wb);
 };
 
-const solvePin = (body, grab, target) => {
+const solvePin = (body: Body, grab: Grab, target: THREE.Vector3) => {
   const r = scratch.g.copy(grab.local).applyQuaternion(body.quaternion);
   const delta = scratch.a.copy(target).sub(body.position).sub(r);
   const distance = delta.length();
@@ -576,7 +631,7 @@ const solvePin = (body, grab, target) => {
   pushBody(body, r, normal.multiplyScalar(lambda));
 };
 
-const placeHanging = (sim, layout, intro) => {
+const placeHanging = (sim: Simulation, layout: CardLayout, intro: boolean) => {
   const { nodes, previous, velocities, body, anchor } = sim;
   nodes[0].copy(anchor);
   for (let i = 1; i <= JOINTS; i++) {
@@ -604,7 +659,7 @@ const placeHanging = (sim, layout, intro) => {
   sim.calm = 0;
 };
 
-const configureSimulation = (sim, layout, length) => {
+const configureSimulation = (sim: Simulation, layout: CardLayout, length: number) => {
   sim.rest = length / JOINTS;
   const { width, height } = layout;
   const body = sim.body;
@@ -618,7 +673,7 @@ const configureSimulation = (sim, layout, length) => {
   body.hang.set(0, layout.hangY, 0);
 };
 
-const stepSimulation = (sim, dt, physics, time) => {
+const stepSimulation = (sim: Simulation, dt: number, physics: Physics, time: number) => {
   const steps = Math.max(1, Math.ceil(dt / MAX_STEP - 1e-6));
   const h = dt / steps;
   const { nodes, previous, velocities, body } = sim;
@@ -734,12 +789,11 @@ const Lanyard = ({
   intro = true,
   className = '',
   style
-}) => {
-  const containerRef = useRef(null);
-  const settingsRef = useRef(null);
-  const applyRef = useRef(null);
+}: LanyardProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const applyRef = useRef<(() => void) | null>(null);
 
-  settingsRef.current = {
+  const settings: Settings = {
     frontImage,
     backImage,
     imageFit: imageFit === 'contain' ? 'contain' : 'cover',
@@ -762,8 +816,10 @@ const Lanyard = ({
     interactive,
     intro
   };
+  const settingsRef = useRef(settings);
 
   useEffect(() => {
+    settingsRef.current = settings;
     applyRef.current?.();
   });
 
@@ -771,7 +827,7 @@ const Lanyard = ({
     const container = containerRef.current;
     if (!container) return undefined;
 
-    let renderer;
+    let renderer: THREE.WebGLRenderer;
     try {
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
     } catch {
@@ -798,8 +854,8 @@ const Lanyard = ({
     fillLight.position.set(3, -1, 4);
     scene.add(keyLight, fillLight);
 
-    const imageCache = new Map();
-    const images = { front: null, back: null, strap: null };
+    const imageCache = new Map<string, Promise<HTMLImageElement | null>>();
+    const images: Record<'front' | 'back' | 'strap', HTMLImageElement | null> = { front: null, back: null, strap: null };
     const frontCanvas = document.createElement('canvas');
     const backCanvas = document.createElement('canvas');
     const strapCanvas = document.createElement('canvas');
@@ -817,7 +873,7 @@ const Lanyard = ({
       foilFill: { value: new THREE.Vector3() },
       foilTop: { value: new THREE.Vector3() }
     };
-    const injectFoil = shader => {
+    const injectFoil = (shader: Parameters<THREE.Material['onBeforeCompile']>[0]) => {
       Object.assign(shader.uniforms, foilUniforms);
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', `#include <common>\n${FOIL_VERTEX_HEAD}`)
@@ -874,13 +930,20 @@ const Lanyard = ({
     scene.add(clampGroup);
 
     const sim = createSimulation();
-    const controls = [];
+    const controls: THREE.Vector3[] = [];
     const mouth = new THREE.Vector3();
     const tuck = new THREE.Vector3();
     const curve = new THREE.CatmullRomCurve3(controls, false, 'centripetal');
     const view = { width: 1, height: 1 };
     let layout = cardLayout('portrait', 0.3);
-    let applied = {};
+    let applied: Partial<{
+      layoutKey: string;
+      framingKey: string;
+      imageKey: string;
+      faceKey: string;
+      strapColor: string;
+      strapScale: number;
+    }> = {};
     let strapScale = STRAP_WIDTH;
     let tileRatio = 2;
     let raf = 0;
@@ -888,14 +951,14 @@ const Lanyard = ({
     let time = 0;
     // ruch canvasa po ekranie (inertia): ostatnia pozycja, prędkość i przyspieszenie w jednostkach sceny
     let worldPerPixel = 0;
-    let screenLeft = null;
+    let screenLeft: number | null = null;
     let anchorVelocity = 0;
     let anchorAcceleration = 0;
     let visible = true;
     let alive = true;
     let placed = false;
     let hovering = false;
-    let press = null;
+    let press: { x: number; y: number; time: number; point: THREE.Vector3 } | null = null;
     let imageToken = 0;
     const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 
@@ -1133,7 +1196,7 @@ const Lanyard = ({
       renderer.render(scene, camera);
     };
 
-    const physics = () => {
+    const physics = (): Physics => {
       const s = settingsRef.current;
       const gravity = 40 * clamp(s.gravity, 0, 3);
       const weight = Math.max(gravity, 20);
@@ -1156,13 +1219,14 @@ const Lanyard = ({
         twistDamping: 3,
         grip: 40,
         gripDamping: 6,
-        breeze: reducedMotion ? 0 : clamp(s.breeze, 0, 1)
+        breeze: reducedMotion ? 0 : clamp(s.breeze, 0, 1),
+        push: 0
       };
     };
 
     // siła od przesuwania się canvasa: opór powietrza (karta zostaje w tyle za ruchem)
     // + bezwładność (przy hamowaniu karta leci dalej); w układzie sceny, jak grawitacja
-    const motionPush = (elapsed, current) => {
+    const motionPush = (elapsed: number, current: Physics) => {
       const s = settingsRef.current;
       const strength = reducedMotion ? 0 : clamp(s.inertia, 0, 3);
       if (!strength) return 0;
@@ -1179,7 +1243,7 @@ const Lanyard = ({
       return clamp(push, -current.gravity * 0.58, current.gravity * 0.58);
     };
 
-    const tick = now => {
+    const tick = (now: number) => {
       raf = 0;
       if (!alive) return;
       const elapsed = Math.max(1e-3, (now - last) / 1000);
@@ -1213,7 +1277,7 @@ const Lanyard = ({
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
 
-    const toPointer = event => {
+    const toPointer = (event: { clientX: number; clientY: number }) => {
       const rect = canvas.getBoundingClientRect();
       pointer.set(
         ((event.clientX - rect.left) / rect.width) * 2 - 1,
@@ -1228,11 +1292,11 @@ const Lanyard = ({
       return hits[0] || null;
     };
 
-    const setCursor = value => {
+    const setCursor = (value: string) => {
       if (canvas.style.cursor !== value) canvas.style.cursor = value;
     };
 
-    const flip = point => {
+    const flip = (point: THREE.Vector3) => {
       const body = sim.body;
       const up = scratch.a.set(0, 1, 0).applyQuaternion(body.quaternion);
       let direction = sim.turn > 0 ? -1 : 1;
@@ -1244,7 +1308,7 @@ const Lanyard = ({
       body.angular.addScaledVector(up, FLIP_SPIN * direction);
     };
 
-    const onPointerDown = event => {
+    const onPointerDown = (event: PointerEvent) => {
       if (!settingsRef.current.interactive || event.button > 0) return;
       toPointer(event);
       const hit = pickCard();
@@ -1263,7 +1327,7 @@ const Lanyard = ({
       start();
     };
 
-    const onPointerMove = event => {
+    const onPointerMove = (event: PointerEvent) => {
       if (!settingsRef.current.interactive) return;
       toPointer(event);
       if (sim.grab) {
@@ -1277,7 +1341,7 @@ const Lanyard = ({
       setCursor(hovering ? 'grab' : '');
     };
 
-    const onPointerUp = event => {
+    const onPointerUp = (event: PointerEvent) => {
       if (!sim.grab) return;
       sim.grab = null;
       if (press && event.type === 'pointerup' && performance.now() - press.time < 450) flip(press.point);
@@ -1287,7 +1351,7 @@ const Lanyard = ({
       start();
     };
 
-    const onTouchStart = event => {
+    const onTouchStart = (event: TouchEvent) => {
       if (!settingsRef.current.interactive || event.touches.length !== 1) return;
       toPointer(event.touches[0]);
       if (pickCard()) event.preventDefault();
@@ -1330,7 +1394,6 @@ const Lanyard = ({
       if (!document.hidden) start();
     };
     document.addEventListener('visibilitychange', onVisibility);
-    // przy breeze = 0 symulacja zasypia — scroll ją budzi, żeby inertia mogła zadziałać
     // scroll przesuwa widok — budzi symulację, żeby wycinek (port) i inertia się odświeżyły
     const onScroll = () => {
       start();

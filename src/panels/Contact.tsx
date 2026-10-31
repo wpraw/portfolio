@@ -1,16 +1,12 @@
-import SideRays from "../components/SideRays.jsx";
-import { CONTACT } from "../data.js";
-import { useLanguage } from "../i18n.jsx";
-
-/* Strona 6 makiety: niemal czarna, szara belka, odręczny nagłówek,
-   telefon + e-mail. Treść zastąpiona neutralnym placeholderem. */
+import SideRays from "../components/SideRays";
+import { CONTACT } from "../data";
+import { useLanguage } from "../i18n";
 
 export default function Contact() {
   const { t } = useLanguage();
 
   return (
     <section className="panel relative flex h-screen w-screen shrink-0 items-center justify-center overflow-hidden bg-ink">
-      {/* snopy światła z prawego górnego rogu — kolory z palety (paper + jasny niebieski z tekstury kodu) */}
       <SideRays
         className="!absolute inset-0"
         rayColor1="#e9e7e1"

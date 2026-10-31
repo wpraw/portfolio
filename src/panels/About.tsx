@@ -1,22 +1,21 @@
+import { IconRotateClockwise } from "@tabler/icons-react";
 import { lazy, Suspense, useEffect, useState } from "react";
-import { buildCardFaces } from "../components/cardFaces.js";
-import { CONTACT, PHOTO } from "../data.js";
-import { useLanguage } from "../i18n.jsx";
+import { buildCardFaces, type CardFaces } from "../components/cardFaces";
+import { CONTACT, PHOTO } from "../data";
+import { useLanguage } from "../i18n";
 
-/* Sekcja O mnie, szeroka na ok. 1,5 ekranu: po lewej bio i fakty,
-   w środku identyfikator na smyczy (Lanyard — można go złapać, rzucić,
-   kliknąć, żeby się odwrócił), po prawej "Jak pracuję". Treści statyczne —
-   rusza się tylko karta i tytuł-duch w tle. */
+/* Po lewej bio i fakty, w środku identyfikator na smyczy (Lanyard — można go złapać,
+   rzucić, kliknąć, żeby się odwrócił), po prawej "Jak pracuję". */
 
 // Lanyard ciągnie three.js (~550 KB) — osobny plik, ładowany w tle, nie blokuje startu strony
-const Lanyard = lazy(() => import("../components/Lanyard.jsx"));
+const Lanyard = lazy(() => import("../components/Lanyard"));
 
 export default function About() {
-  const { lang, t } = useLanguage();
-  const [faces, setFaces] = useState({});
+  const { t } = useLanguage();
+  const [faces, setFaces] = useState<Partial<CardFaces>>({});
   const firstName = CONTACT.name.split(" ")[0];
 
-  // grafiki karty rysowane na canvasie — przerysuj przy zmianie języka
+  // grafiki karty rysowane na canvasie — przerysowywane, gdy zmienią się teksty (język)
   useEffect(() => {
     let alive = true;
     buildCardFaces({
@@ -27,28 +26,30 @@ export default function About() {
       location: t.location,
       email: CONTACT.email,
       strap: t.about.strap,
-    }).then((next) => alive && setFaces(next));
+    }).then((next) => {
+      if (alive) setFaces(next);
+    });
     return () => {
       alive = false;
     };
-  }, [lang]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [t.about.photo, t.about.strap, t.role, t.location]);
 
   return (
     <section className="panel relative h-screen w-[220vw] shrink-0 overflow-hidden bg-slate md:w-[150vw]">
-      {/* wielki tytuł-duch w tle, jedzie z parallaxą */}
       <h2
         data-parallax="0.35"
         className="ghost-title absolute bottom-4 left-[10vw] text-[22vw] font-bold uppercase md:text-[16vw]"
       >
-        {t.sections.find((s) => s.id === "about").label}
+        {t.sections.find((s) => s.id === "about")?.label}
       </h2>
 
       {/* identyfikator na smyczy — zwisa spod belki nawigacji; warstwa na całą sekcję,
           więc kartę przycina dopiero granica sekcji (leży pod kolumnami z treścią) */}
       <div className="absolute inset-0">
         {/* podpowiedź przed kartą w DOM — przeciągnięta karta ją przykrywa */}
-        <p className="pointer-events-none absolute inset-x-0 bottom-[20%] text-center font-hand text-2xl text-paper/45">
+        <p className="pointer-events-none absolute inset-x-0 bottom-[20%] flex items-center justify-center gap-2 font-hand text-2xl text-paper/45">
           {t.about.hint}
+          <IconRotateClockwise aria-hidden stroke={1.5} className="h-[0.8em] w-[0.8em]" />
         </p>
         <Suspense fallback={null}>
           <Lanyard
@@ -66,7 +67,6 @@ export default function About() {
 
       {/* siatka nie łapie kursora — tylko kolumny z treścią, reszta trafia do karty */}
       <div className="pointer-events-none relative z-10 grid h-full grid-cols-[1fr_minmax(0,0.9fr)_1fr]">
-        {/* lewa kolumna — kim jestem */}
         <div className="pointer-events-auto self-center pt-16 pl-[8vw] pr-6">
           <p className="mt-8 font-hand text-4xl text-paper/70 md:text-5xl">{t.about.hello}</p>
           <h3 className="text-6xl font-bold uppercase leading-[0.95] tracking-tight text-paper md:text-8xl">
@@ -89,7 +89,6 @@ export default function About() {
         {/* środek pusty — tu wisi karta */}
         <div />
 
-        {/* prawa kolumna — jak pracuję */}
         <div className="pointer-events-auto self-center pt-16 pl-6 pr-[8vw]">
           <h3 className="font-hand text-4xl text-paper/90 md:text-5xl">{t.about.approachTitle}</h3>
           <ol className="mt-8 max-w-md divide-y divide-paper/15 border-y border-paper/15">

@@ -5,18 +5,16 @@ import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { CustomEase } from "gsap/CustomEase";
 import { useGSAP } from "@gsap/react";
 
-import Nav from "./components/Nav.jsx";
-import Footer from "./components/Footer.jsx";
-import Home from "./panels/Home.jsx";
-import About from "./panels/About.jsx";
-import Resume from "./panels/Resume.jsx";
-import Portfolio from "./panels/Portfolio.jsx";
-import Contact from "./panels/Contact.jsx";
+import Nav from "./components/Nav";
+import Footer from "./components/Footer";
+import Home from "./panels/Home";
+import About from "./panels/About";
+import Resume from "./panels/Resume";
+import Portfolio from "./panels/Portfolio";
+import Contact from "./panels/Contact";
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, CustomEase, useGSAP);
 
-/* cubic-bezier dla nawigacji: szybki start, długie miękkie wyhamowanie —
-   scrub (1 s) dokłada własne wygładzenie, więc krzywa jest "out"-heavy */
 const NAV_EASE = CustomEase.create("navEase", "0.32, 0, 0.12, 1");
 
 /* Pionowy scroll napędza poziomą podróż:
@@ -25,7 +23,9 @@ const NAV_EASE = CustomEase.create("navEase", "0.32, 0, 0.12, 1");
      (ScrollTrigger z containerAnimation),
    - tytuły-duchy [data-parallax] płyną wolniej niż tor. */
 
-const ENTER_FROM = {
+type EnterDir = "up" | "down" | "left" | "right";
+
+const ENTER_FROM: Record<EnterDir, { x?: number; y?: number }> = {
   up: { y: 90 },
   down: { y: -90 },
   left: { x: -140 },
@@ -33,18 +33,17 @@ const ENTER_FROM = {
 };
 
 export default function App() {
-  const wrapperRef = useRef(null);
-  const trackRef = useRef(null);
-  const stRef = useRef(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const stRef = useRef<ScrollTrigger | null>(null);
   const [active, setActive] = useState(0);
 
   useGSAP(
     () => {
-      const track = trackRef.current;
-      const panels = gsap.utils.toArray(".panel");
+      const track = trackRef.current!;
+      const panels = gsap.utils.toArray<HTMLElement>(".panel");
       const distance = () => track.scrollWidth - window.innerWidth;
 
-      /* --- główny tween poziomy --- */
       const tween = gsap.to(track, {
         x: () => -distance(),
         ease: "none",
@@ -65,11 +64,10 @@ export default function App() {
           },
         },
       });
-      stRef.current = tween.scrollTrigger;
+      stRef.current = tween.scrollTrigger ?? null;
 
-      /* --- wjazd + zniknięcie kontenerów --- */
-      gsap.utils.toArray("[data-enter]").forEach((el) => {
-        const from = ENTER_FROM[el.dataset.enter] ?? ENTER_FROM.up;
+      gsap.utils.toArray<HTMLElement>("[data-enter]").forEach((el) => {
+        const from = ENTER_FROM[el.dataset.enter as EnterDir] ?? ENTER_FROM.up;
 
         gsap.from(el, {
           ...from,
@@ -100,9 +98,8 @@ export default function App() {
         });
       });
 
-      /* --- parallaxa tytułów-duchów --- */
-      gsap.utils.toArray("[data-parallax]").forEach((el) => {
-        const speed = parseFloat(el.dataset.parallax);
+      gsap.utils.toArray<HTMLElement>("[data-parallax]").forEach((el) => {
+        const speed = parseFloat(el.dataset.parallax ?? "0");
         gsap.fromTo(
           el,
           { x: () => window.innerWidth * speed },
@@ -121,8 +118,7 @@ export default function App() {
         );
       });
 
-      /* --- paski języków --- */
-      gsap.utils.toArray(".lang-bar").forEach((el) => {
+      gsap.utils.toArray<HTMLElement>(".lang-bar").forEach((el) => {
         gsap.from(el, {
           scaleX: 0,
           ease: "none",
@@ -135,7 +131,6 @@ export default function App() {
           },
         });
       });
-      /* --- marquee logotypów --- */
       gsap.to(".marquee", {
         xPercent: -50,
         ease: "none",
@@ -143,7 +138,6 @@ export default function App() {
         repeat: -1,
       });
 
-      /* --- wejście hero przy załadowaniu --- */
       gsap.from("[data-hero]", {
         y: 40,
         opacity: 0,
@@ -154,7 +148,6 @@ export default function App() {
       });
       gsap.from("[data-nav]", { yPercent: -100, duration: 0.7, ease: "power3.out" });
 
-      /* --- pulsująca linia "scroll" --- */
       gsap.fromTo(
         ".scroll-hint",
         { scaleX: 0 },
@@ -164,12 +157,11 @@ export default function App() {
     { scope: wrapperRef }
   );
 
-  /* klik w nav → przewiń pionowy scroll do pozycji panelu */
-  const goTo = (i) => {
+  const goTo = (i: number) => {
     const st = stRef.current;
     const track = trackRef.current;
     if (!st || !track) return;
-    const panels = track.querySelectorAll(".panel");
+    const panels = track.querySelectorAll<HTMLElement>(".panel");
     const distance = track.scrollWidth - window.innerWidth;
     const progress = Math.min(panels[i].offsetLeft / distance, 1);
     const target = st.start + progress * (st.end - st.start);

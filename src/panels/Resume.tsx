@@ -1,10 +1,8 @@
-import { CONTACT, MARQUEE } from "../data.js";
-import { useLanguage } from "../i18n.jsx";
+import { IconArrowRight, IconCircleHalfVertical } from "@tabler/icons-react";
+import { CONTACT, MARQUEE } from "../data";
+import { useLanguage } from "../i18n";
 
-/* Strona 5 makiety: królewski niebieski, trzy kolumny
-   (umiem / doświadczenie i edukacja / hobby + wartość dla firmy),
-   paski języków, na dole animowany pas logotypów.
-   Stylizacja na blueprint: papier milimetrowy, ramka arkusza ze strefami
+/* Stylizacja na blueprint: papier milimetrowy, ramka arkusza ze strefami
    (1–6 / A–D), linie wymiarowe nad kolumnami, węzły na osi czasu,
    podziałka pod paskami języków i tabliczka rysunkowa obok pasa logotypów.
    Klucze list = indeksy, żeby zmiana języka nie remountowała
@@ -24,7 +22,7 @@ const CORNERS = [
 export default function Resume() {
   const { t } = useLanguage();
   const sheet = t.sections.findIndex((s) => s.id === "resume") + 1;
-  const pad = (n) => String(n).padStart(2, "0");
+  const pad = (n: number) => String(n).padStart(2, "0");
 
   return (
     <section className="panel relative flex h-screen w-[140vw] shrink-0 flex-col overflow-hidden bg-royal max-[1000px]:pb-12 md:w-screen">
@@ -32,7 +30,7 @@ export default function Resume() {
 
       {/* bez data-parallax — na blueprincie tytuł stoi w miejscu razem z arkuszem */}
       <h2 className="ghost-title absolute -top-4 right-10 text-[20vw] font-bold uppercase md:text-[13vw]">
-        {t.sections.find((s) => s.id === "resume").label}
+        {t.sections.find((s) => s.id === "resume")?.label}
       </h2>
 
       {/* pole rysunku — ramka arkusza kończy się nad pasem logotypów */}
@@ -68,14 +66,14 @@ export default function Resume() {
         </div>
 
         <div className="relative z-10 grid h-full grid-cols-3 gap-6 px-6 pt-24 md:gap-10 md:px-16 md:pt-28">
-          {/* Umiem */}
           <div data-enter="up" className="border-l border-paper/25 pl-5 md:pl-8">
             <p aria-hidden className="dim mb-3 font-code text-[9px] tracking-[0.3em] text-paper/40">DET. A</p>
             <h3 className="font-hand text-3xl text-paper md:text-4xl">{t.resume.skillsTitle}</h3>
             <ul className="mt-5 space-y-2">
               {t.skills.map((s, i) => (
                 <li key={i} className="skill-item font-code text-[11px] text-paper/80 md:text-sm">
-                  <span className="mr-2 text-paper/40">→</span>
+                  {/* 1em = rozmiar fontu wiersza; align — strzałka na linii tekstu, nie na górze */}
+                  <IconArrowRight aria-hidden stroke={1.5} className="mr-2 inline-block h-[1em] w-[1em] align-[-0.125em] text-paper/40" />
                   {s}
                 </li>
               ))}
@@ -97,7 +95,7 @@ export default function Resume() {
             </div>
           </div>
 
-          {/* Doświadczenie i edukacja — węzły osi czasu siedzą na lewej krawędzi kolumny */}
+          {/* węzły osi czasu siedzą na lewej krawędzi kolumny */}
           <div data-enter="up" className="border-l border-paper/25 pl-5 md:pl-8">
             <p aria-hidden className="dim mb-3 font-code text-[9px] tracking-[0.3em] text-paper/40">DET. B</p>
             <h3 className="font-hand text-3xl text-paper md:text-4xl">{t.resume.experienceTitle}</h3>
@@ -117,7 +115,6 @@ export default function Resume() {
             </ol>
           </div>
 
-          {/* Wartość dla zespołu */}
           <div data-enter="up" className="border-l border-paper/25 pl-5 md:pl-8">
             <p aria-hidden className="dim mb-3 font-code text-[9px] tracking-[0.3em] text-paper/40">DET. C</p>
             <h3 className="font-hand text-3xl text-paper md:text-4xl">{t.resume.teamValueTitle}</h3>
@@ -130,7 +127,6 @@ export default function Resume() {
               ))}
             </ul>
 
-          {/* Wartość dla klienta */}
             <h3 className="mt-10 font-hand text-3xl text-paper md:text-4xl">{t.resume.clientTitle}</h3>
             <ul className="mt-5 space-y-4">
               {t.clientValue.map((c, i) => (
@@ -149,8 +145,9 @@ export default function Resume() {
         <div className="min-w-0 flex-1 overflow-hidden py-5">
           <div className="marquee flex w-max gap-14 whitespace-nowrap px-7">
             {[...MARQUEE, ...MARQUEE].map((m, i) => (
-              <span key={i} className="font-code text-sm uppercase tracking-[0.3em] text-paper/60">
-                ◍ {m}
+              <span key={i} className="flex items-center gap-[0.6em] font-code text-sm uppercase tracking-[0.3em] text-paper/60">
+                <IconCircleHalfVertical aria-hidden stroke={1.5} className="h-[1em] w-[1em]" />
+                {m}
               </span>
             ))}
           </div>

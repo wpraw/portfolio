@@ -1,10 +1,8 @@
-import { CONTACT } from "../data.js";
-import LanguageSwitch from "./LanguageSwitch.jsx";
-import SocialLinks from "./SocialLinks.jsx";
+import { CONTACT } from "../data";
+import LanguageSwitch from "./LanguageSwitch";
+import SocialLinks from "./SocialLinks";
 
-/* Stała dolna belka — tylko na wąskich ekranach (do 1000px), gdzie
-   w nagłówku zostają same sekcje. Telefon, GitHub, LinkedIn i zmiana języka.
-   Wysokość h-12 — panele zostawiają na nią miejsce (max-[1000px]:pb-12 / bottom-16). */
+/* Tylko do 1000px — tam nagłówek mieści same sekcje. */
 
 export default function Footer() {
   return (

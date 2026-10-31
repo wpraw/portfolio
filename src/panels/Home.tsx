@@ -1,16 +1,13 @@
 import { useRef } from "react";
-import GhostFibers from "../components/GhostFibers.jsx";
-import TechText from "../components/TechText.jsx";
-import { CONTACT } from "../data.js";
-import { useLanguage } from "../i18n.jsx";
-
-/* Strona startowa: pełnoekranowe tło Ghost Fibers (WebGL, React Bits),
-   odręczny nagłówek + PROGRAMISTA, CTA do sekcji. */
+import GhostFibers from "../components/GhostFibers";
+import TechText from "../components/TechText";
+import { CONTACT } from "../data";
+import { useLanguage } from "../i18n";
 
 /* ustawienia tła — odchudzone (2 warstwy, 44 włókna, rozdzielczość 0.75), płynne na dużych ekranach.
    Kolor włókna zależy od głębi: bliskie dostają glowColor, dalekie secondaryColor. */
 const FIBERS = {
-  // pierwsza zatwierdzona wersja: bliskie włókna ciemne, zlewały się z tłem
+  // nieużywany wariant: bliskie włókna ciemne, zlewają się z tłem
   calm: {
     glowColor: "#2a52c9",
     secondaryColor: "#7ea1e8",
@@ -36,9 +33,9 @@ const FIBERS = {
   },
 };
 
-export default function Home({ onNavigate }) {
+export default function Home({ onNavigate }: { onNavigate: (index: number) => void }) {
   const { t } = useLanguage();
-  const nameRef = useRef(null);
+  const nameRef = useRef<HTMLHeadingElement>(null);
 
   return (
     <section className="panel relative flex h-screen w-screen shrink-0 items-center overflow-hidden bg-navy">
@@ -59,9 +56,6 @@ export default function Home({ onNavigate }) {
       </div>
 
       <div className="pointer-events-none relative z-10 px-6 pt-16 md:px-16 lg:px-24">
-        <p data-hero className="font-hand text-3xl text-paper/80 md:text-5xl">
-          {t.home.greeting}
-        </p>
         {/* miejsce na napis TechText — sztywne wymiary, bo komponent dopasowuje do nich rozmiar fontu */}
         <h1 ref={nameRef} className="mt-2 h-28 w-[79vw] md:h-40 md:w-[63vw] lg:h-48">
           <span className="sr-only">{CONTACT.name}</span>
@@ -95,15 +89,6 @@ export default function Home({ onNavigate }) {
         </div>
       </div>
 
-      {/* <a
-        data-hero
-        href={`mailto:${CONTACT.email}`}
-        className="absolute bottom-6 left-6 z-10 font-hand text-2xl text-paper/60 hover:text-paper md:left-16"
-      >
-        {CONTACT.email}
-      </a> */}
-
-      {/* wskazówka scrolla */}
       <div
         data-hero
         className="absolute bottom-6 right-6 z-10 max-[1000px]:bottom-16 flex items-center gap-3 font-code text-[10px] uppercase tracking-[0.3em] text-paper/50 md:right-16"

@@ -1,7 +1,3 @@
-/* Grafiki na identyfikator z Lanyard (przód, tył, smycz), rysowane na canvasie —
-   dzięki temu używają fontów strony i zmieniają się razem z językiem.
-   Zwracają data URL-e, które Lanyard ładuje jak zwykłe obrazki. */
-
 // proporcje karty "portrait" z Lanyard (1.6 × 2.25) przy jej szerokości tekstury 1024 px
 const W = 1024;
 const H = 1440;
@@ -11,7 +7,25 @@ const ACCENT = "#7ea1e8";
 
 const FONTS = ['700 100px "Space Grotesk"', '600 40px "JetBrains Mono"', '700 80px "Caveat"'];
 
-const color = (name, fallback) =>
+type Palette = ReturnType<typeof palette>;
+
+export interface CardFaces {
+  front: string;
+  back: string;
+  strap: string;
+}
+
+export interface CardFacesInput {
+  photo?: string;
+  label: string;
+  name: string;
+  role: string;
+  location: string;
+  email: string;
+  strap: string;
+}
+
+const color = (name: string, fallback: string) =>
   getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
 
 const palette = () => ({
@@ -21,36 +35,38 @@ const palette = () => ({
   paper: color("--color-paper", "#e9e7e1"),
 });
 
-const canvas2d = (width, height) => {
+const canvas2d = (width: number, height: number): [HTMLCanvasElement, CanvasRenderingContext2D] => {
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
-  return [canvas, canvas.getContext("2d")];
+  return [canvas, canvas.getContext("2d")!];
 };
 
-const loadImage = (src) =>
-  new Promise((resolve) => {
+const loadImage = (src: string) =>
+  new Promise<HTMLImageElement | null>((resolve) => {
     const image = new Image();
     image.onload = () => resolve(image);
     image.onerror = () => resolve(null);
     image.src = src;
   });
 
-function drawCover(ctx, image, x, y, w, h) {
+function drawCover(ctx: CanvasRenderingContext2D, image: HTMLImageElement, x: number, y: number, w: number, h: number) {
   const scale = Math.max(w / image.width, h / image.height);
   const sw = w / scale;
   const sh = h / scale;
   ctx.drawImage(image, (image.width - sw) / 2, (image.height - sh) / 2, sw, sh, x, y, w, h);
 }
 
-function drawFront({ photo, label, name, role }, c) {
+function drawFront(
+  { photo, label, name, role }: { photo: HTMLImageElement | null } & Pick<CardFacesInput, "label" | "name" | "role">,
+  c: Palette
+) {
   const [canvas, ctx] = canvas2d(W, H);
   const stripTop = H - 280;
 
   if (photo) {
     drawCover(ctx, photo, 0, 0, W, stripTop);
   } else {
-    // placeholder zdjęcia — przekątne kreski jak w PhotoPlaceholder
     ctx.fillStyle = c.slate;
     ctx.fillRect(0, 0, W, stripTop);
     ctx.strokeStyle = c.paper;
@@ -75,7 +91,6 @@ function drawFront({ photo, label, name, role }, c) {
     ctx.globalAlpha = 1;
   }
 
-  // dolny pasek z imieniem — jak na prawdziwym identyfikatorze
   ctx.fillStyle = c.navy;
   ctx.fillRect(0, stripTop, W, H - stripTop);
   ctx.fillStyle = ACCENT;
@@ -93,14 +108,13 @@ function drawFront({ photo, label, name, role }, c) {
   return canvas.toDataURL("image/png");
 }
 
-function drawBack({ name, role, location, email }, c) {
+function drawBack({ name, role, location, email }: Pick<CardFacesInput, "name" | "role" | "location" | "email">, c: Palette) {
   const [canvas, ctx] = canvas2d(W, H);
   const left = 88;
 
   ctx.fillStyle = c.navy;
   ctx.fillRect(0, 0, W, H);
 
-  // delikatna siatka w tle
   ctx.strokeStyle = c.paper;
   ctx.globalAlpha = 0.04;
   ctx.lineWidth = 2;
@@ -117,7 +131,6 @@ function drawBack({ name, role, location, email }, c) {
   ctx.letterSpacing = "10px";
   ctx.fillText("ID · 001", left, SLOT_ZONE + 130);
 
-  // imię i nazwisko w osobnych liniach, duże
   ctx.fillStyle = c.paper;
   ctx.font = '700 132px "Space Grotesk"';
   ctx.letterSpacing = "-3px";
@@ -160,7 +173,7 @@ function drawBack({ name, role, location, email }, c) {
   return canvas.toDataURL("image/png");
 }
 
-function drawStrap(label, c) {
+function drawStrap(label: string, c: Palette) {
   // Lanyard kładzie obrazek smyczy wzdłuż taśmy: szerokość = długość, wysokość = szerokość taśmy
   const [canvas, ctx] = canvas2d(1536, 192);
   ctx.fillStyle = c.royal;
@@ -176,7 +189,15 @@ function drawStrap(label, c) {
   return canvas.toDataURL("image/png");
 }
 
-export async function buildCardFaces({ photo, label, name, role, location, email, strap }) {
+export async function buildCardFaces({
+  photo,
+  label,
+  name,
+  role,
+  location,
+  email,
+  strap,
+}: CardFacesInput): Promise<CardFaces> {
   // przykładowy tekst z polskimi znakami — bez niego przeglądarka pobiera tylko podstawowy zestaw liter
   await Promise.all(FONTS.map((font) => document.fonts.load(font, "AĄĘŁŃÓŚŹŻ").catch(() => null)));
   const c = palette();
