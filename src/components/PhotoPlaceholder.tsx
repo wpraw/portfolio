@@ -1,11 +1,7 @@
-/* Stylizowany placeholder zdjęcia w "ramce" jak na makiecie —
-   podmień na <img> z własnym plikiem, ramka zostaje. */
-
 export default function PhotoPlaceholder({ label = "TWOJE ZDJĘCIE", className = "", ...rest }) {
   return (
     <div className={`bg-olive p-3 shadow-[12px_12px_0_0_var(--color-royal)] ${className}`} {...rest}>
       <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-steel/40">
-        {/* przekątne kreski */}
         <svg className="absolute inset-0 h-full w-full opacity-25" aria-hidden>
           <defs>
             <pattern id="diag" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">

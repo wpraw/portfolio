@@ -8,6 +8,62 @@ import pkoLogo from "./assets/logos/pko-ubezpieczenia.svg";
 import egisLogo from "./assets/logos/egis.svg";
 import compensaLogo from "./assets/logos/compensa.svg";
 
+export type Lang = "pl" | "en";
+
+export interface Client {
+  name: string;
+  logo: string;
+  /** logo dwuwierszowe — dostaje większą wysokość */
+  tall?: boolean;
+}
+
+export interface TitledItem {
+  title: string;
+  desc: string;
+}
+
+export interface Project extends TitledItem {
+  tags: string[];
+  /** publiczny adres — bez niego nie ma „zobacz więcej” */
+  link?: string;
+  clients?: Client[];
+}
+
+export interface Content {
+  meta: { title: string };
+  role: string;
+  location: string;
+  sections: { id: string; label: string }[];
+  langSwitch: string;
+  home: { ctaPortfolio: string; ctaResume: string; ctaContact: string; scroll: string };
+  about: {
+    heading: string;
+    hello: string;
+    bio: string;
+    facts: { value: string; label: string }[];
+    hint: string;
+    strap: string;
+    approachTitle: string;
+    principles: TitledItem[];
+    photo: string;
+  };
+  resume: {
+    skillsTitle: string;
+    experienceTitle: string;
+    teamValueTitle: string;
+    clientTitle: string;
+    titleBlock: { drawn: string; sheet: string; scale: string; rev: string };
+  };
+  portfolio: { heading: string; more: string; clients: string };
+  contact: { headline: string; sub: string };
+  skills: string[];
+  languages: { name: string; level: string; pct: number }[];
+  experience: { period: string; title: string; place: string; desc: string }[];
+  teamValue: TitledItem[];
+  clientValue: TitledItem[];
+  projects: Project[];
+}
+
 export const CONTACT = {
   name: "Wojciech Prawdzik",
   email: "w.prawdzik@onet.pl",
@@ -21,9 +77,8 @@ export const PHOTO = photo;
 
 /*  Loga klientów w oryginalnych kolorach — na stronie wybielane filtrem CSS
     (Link4 przerobione ręcznie na białe z wyciętymi literami, bo litery były białe).
-    Źródła: GPW — Wikimedia Commons, x-kom / Diety od Brokuła / Link4 — ich strony.
-    tall — logo dwuwierszowe, dostaje większą wysokość, żeby tekst nie był drobny. */
-const FORM_CLIENTS = [
+    Źródła: GPW — Wikimedia Commons, x-kom / Diety od Brokuła / Link4 — ich strony. */
+const FORM_CLIENTS: Client[] = [
   { name: "GPW", logo: gpwLogo },
   { name: "x-kom", logo: xkomLogo },
   { name: "Diety od Brokuła", logo: brokulLogo, tall: true },
@@ -32,7 +87,7 @@ const FORM_CLIENTS = [
 
 /*  Źródła: strony firm (Pekao Leasing, PKO Ubezpieczenia, Egis Pharmaceuticals, Compensa).
     Egis przycięty do znaku + nazwy, bez sloganu. */
-const INTRANET_CLIENTS = [
+const INTRANET_CLIENTS: Client[] = [
   { name: "Pekao Leasing", logo: pekaoLeasingLogo },
   { name: "PKO TU", logo: pkoLogo, tall: true },
   { name: "Link4", logo: link4Logo },
@@ -55,7 +110,7 @@ export const MARQUEE = [
   "Vite",
 ];
 
-export const CONTENT = {
+export const CONTENT: Record<Lang, Content> = {
   pl: {
     meta: { title: "Wojciech Prawdzik - Programista" },
     role: "INŻYNIER OPROGRAMOWANIA",
@@ -85,7 +140,7 @@ export const CONTENT = {
         { value: "PL · EN", label: "języki" },
         { value: "0", label: "Fuckupów na prodzie" },
       ],
-      hint: "złap mnie i rzuć ↻",
+      hint: "złap mnie i rzuć",
       strap: "<HELLO WORLD />",
       approachTitle: "Jak pracuję",
       principles: [
@@ -113,12 +168,11 @@ export const CONTENT = {
       experienceTitle: "Doświadczenie i edukacja",
       teamValueTitle: "Co wnoszę do zespołu",
       clientTitle: "Co wnoszę dla klienta",
-      // tabliczka rysunkowa w prawym dolnym rogu (blueprint)
       titleBlock: { drawn: "Rys.", sheet: "Ark.", scale: "Skala", rev: "Rew." },
     },
     portfolio: {
       heading: "Rzeczy, które zbudowałem",
-      more: "zobacz więcej →",
+      more: "zobacz więcej",
       clients: "Klienci",
     },
     contact: {
@@ -229,7 +283,6 @@ export const CONTENT = {
     langSwitch: "Change language",
 
     home: {
-      // greeting: "Come on in, friend -",
       ctaPortfolio: "Portfolio",
       ctaResume: "Resume",
       ctaContact: "Contact",
@@ -245,7 +298,7 @@ export const CONTENT = {
         { value: "PL · EN", label: "languages" },
         { value: "0", label: "Fuckups on prod" },
       ],
-      hint: "grab me & throw ↻",
+      hint: "grab me & throw",
       strap: "<HELLO WORLD />",
       approachTitle: "How I work",
       principles: [
@@ -277,7 +330,7 @@ export const CONTENT = {
     },
     portfolio: {
       heading: "Things I've built",
-      more: "see more →",
+      more: "see more",
       clients: "Clients",
     },
     contact: {

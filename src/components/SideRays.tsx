@@ -1,15 +1,40 @@
-/* SideRays — skopiowane z React Bits (https://reactbits.dev/backgrounds/side-rays,
-   https://github.com/DavidHDev/react-bits), wersja JS + CSS.
-   Licencja: MIT + Commons Clause, (c) David Haz — można używać w projektach,
-   nie wolno sprzedawać samego komponentu. Kod bez zmian poza usuniętym 'use client'. */
-
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import './SideRays.css';
+
+export type SideRaysOrigin = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'right' | 'left';
+
+export interface SideRaysProps {
+  rayColor1?: string;
+  rayColor2?: string;
+  blend?: number;
+  origin?: SideRaysOrigin;
+  speed?: number;
+  intensity?: number;
+  spread?: number;
+  density?: number;
+  sharpness?: number;
+  tilt?: number;
+  falloff?: number;
+  glow?: number;
+  saturation?: number;
+  dust?: number;
+  followMouse?: boolean;
+  mouseInfluence?: number;
+  intro?: boolean;
+  lightMode?: boolean;
+  opacity?: number;
+  maxDevicePixelRatio?: number;
+  className?: string;
+  style?: CSSProperties;
+}
 
 const PIXEL_BUDGET = 2.4e6;
 const TAU = Math.PI * 2;
 
-const ORIGINS = {
+type RGB = [number, number, number];
+type Frame = { flipX: number; flipY: number; side: number };
+
+const ORIGINS: Record<SideRaysOrigin, Frame> = {
   'top-right': { flipX: 0, flipY: 0, side: 0 },
   'top-left': { flipX: 1, flipY: 0, side: 0 },
   'bottom-right': { flipX: 0, flipY: 1, side: 0 },
@@ -135,28 +160,28 @@ void main() {
   fragColor = vec4(min(color, vec3(alpha)), alpha);
 }`;
 
-const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
-const wrapAngle = angle => ((((angle + Math.PI) % TAU) + TAU) % TAU) - Math.PI;
+const wrapAngle = (angle: number) => ((((angle + Math.PI) % TAU) + TAU) % TAU) - Math.PI;
 
-const parseColor = value => {
+const parseColor = (value: string): RGB => {
   const text = String(value || '').trim();
   const hex = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(text);
   if (hex) {
     const full = hex[1].length === 3 ? hex[1].replace(/./g, digit => digit + digit) : hex[1];
-    return [0, 2, 4].map(index => parseInt(full.slice(index, index + 2), 16) / 255);
+    return [0, 2, 4].map(index => parseInt(full.slice(index, index + 2), 16) / 255) as RGB;
   }
   const rgb = /^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)/i.exec(text);
-  if (rgb) return [rgb[1], rgb[2], rgb[3]].map(channel => clamp(parseFloat(channel) / 255, 0, 1));
+  if (rgb) return [rgb[1], rgb[2], rgb[3]].map(channel => clamp(parseFloat(channel) / 255, 0, 1)) as RGB;
   return [1, 1, 1];
 };
 
-const geometryFor = (frame, aspect) => ({
+const geometryFor = (frame: Frame, aspect: number) => ({
   source: frame.side ? [aspect * 0.5 + 0.42, 0.3] : [aspect * 0.5 + 0.1, 0.62],
   heading: frame.side ? 3.42 : -2.48
 });
 
-const compile = (gl, type, source) => {
+const compile = (gl: WebGL2RenderingContext, type: number, source: string) => {
   const shader = gl.createShader(type);
   if (!shader) return null;
   gl.shaderSource(shader, source);
@@ -169,7 +194,7 @@ const compile = (gl, type, source) => {
   return shader;
 };
 
-const link = gl => {
+const link = (gl: WebGL2RenderingContext) => {
   const vertex = compile(gl, gl.VERTEX_SHADER, VERTEX);
   const fragment = compile(gl, gl.FRAGMENT_SHADER, FRAGMENT);
   const program = vertex && fragment ? gl.createProgram() : null;
@@ -188,7 +213,7 @@ const link = gl => {
     gl.deleteProgram(program);
     return null;
   }
-  const uniforms = {};
+  const uniforms: Record<string, WebGLUniformLocation | null> = {};
   const count = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
   for (let index = 0; index < count; index++) {
     const info = gl.getActiveUniform(program, index);
@@ -220,10 +245,10 @@ const SideRays = ({
   maxDevicePixelRatio = 2,
   className = '',
   style
-}) => {
-  const containerRef = useRef(null);
-  const canvasRef = useRef(null);
-  const wakeRef = useRef(null);
+}: SideRaysProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const wakeRef = useRef<(() => void) | null>(null);
   const [generation, setGeneration] = useState(0);
 
   const settings = {
@@ -249,9 +274,9 @@ const SideRays = ({
     maxRatio: clamp(maxDevicePixelRatio, 0.5, 3)
   };
   const settingsRef = useRef(settings);
-  settingsRef.current = settings;
 
   useEffect(() => {
+    settingsRef.current = settings;
     wakeRef.current?.();
   });
 
@@ -305,7 +330,9 @@ const SideRays = ({
       size.height = cssHeight;
     };
 
-    const pointerAngle = s => {
+    type Settings = typeof settingsRef.current;
+
+    const pointerAngle = (s: Settings) => {
       let x = (pointer.x - size.width / 2) / size.height;
       let y = (size.height / 2 - pointer.y) / size.height;
       if (s.frame.flipX) x = -x;
@@ -314,7 +341,7 @@ const SideRays = ({
       return wrapAngle(Math.atan2(y - source[1], x - source[0]) - heading - s.tilt);
     };
 
-    const frame = now => {
+    const frame = (now: number) => {
       raf = 0;
       if (lost) return;
       const s = settingsRef.current;
@@ -379,7 +406,7 @@ const SideRays = ({
       wake();
     };
 
-    const onPointerMove = event => {
+    const onPointerMove = (event: PointerEvent) => {
       const rect = container.getBoundingClientRect();
       pointer.x = event.clientX - rect.left;
       pointer.y = event.clientY - rect.top;
@@ -394,7 +421,7 @@ const SideRays = ({
       pointer.inside = false;
       wake();
     };
-    const onPointerUp = event => {
+    const onPointerUp = (event: PointerEvent) => {
       if (event.pointerType !== 'mouse') onLeave();
     };
     window.addEventListener('pointermove', onPointerMove, { passive: true });
@@ -402,7 +429,7 @@ const SideRays = ({
     window.addEventListener('pointercancel', onPointerUp, { passive: true });
     document.documentElement.addEventListener('pointerleave', onLeave);
 
-    const onLost = event => {
+    const onLost = (event: Event) => {
       event.preventDefault();
       lost = true;
       cancelAnimationFrame(raf);

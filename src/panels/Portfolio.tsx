@@ -1,28 +1,15 @@
-import { useState } from "react";
-import { useLanguage } from "../i18n.jsx";
-
-/* Strona zaprojektowana od zera w vibe kolażu (nie było jej w makiecie):
-   oliwkowo-grafitowe tło, projekty jako akordeon.
-   Od 1001px warstwy są pionowymi paskami obok siebie (tytuł czytany od dołu),
-   do 1000px poziomymi pasami jeden pod drugim. Otwarty projekt zabiera
-   resztę miejsca (flex 1 1 0), zamknięte mają stałą grubość --spine.
-   Na desktopie otwiera najechanie, wszędzie klik / focus.
-   Tytuł-duch stoi w przepływie na dole sekcji, więc akordeon (flex-1)
-   kończy się nad nim; na szerokim ekranie okna mają limit szerokości i wysokości.
-   Na niskich telefonach tytuł-duch znika, żeby zostało miejsce na treść. */
+import { IconArrowRight, IconMinus, IconPlus } from "@tabler/icons-react";
+import { useState, type CSSProperties } from "react";
+import { useLanguage } from "../i18n";
 
 export default function Portfolio() {
   const { t } = useLanguage();
   const [open, setOpen] = useState(0);
-
-  /* docelowa szerokość treści otwartego okna (desktop): ekran − padding sekcji (2×4rem)
-     − zamknięte grzbiety z odstępami (5rem + 0.75rem każdy) − własny grzbiet (5rem),
-     max 47rem (= max-w okna 52rem − grzbiet). Stała w trakcie animacji, więc tekst się nie przelewa. */
   const contentW = `min(47rem, calc(100vw - 13rem - ${t.projects.length - 1} * 5.75rem))`;
 
   return (
     <section
-      style={{ "--content-w": contentW }}
+      style={{ "--content-w": contentW } as CSSProperties}
       className="panel relative flex h-screen w-screen shrink-0 flex-col overflow-hidden bg-olive px-5 pb-6 pt-20 max-[1000px]:pb-16 md:px-16 md:pt-24"
     >
       <p data-enter="up" className="relative z-10 font-hand text-3xl text-paper/80 md:text-5xl">
@@ -54,9 +41,11 @@ export default function Portfolio() {
                   className="flex h-[var(--spine)] w-full items-center gap-4 px-5 text-left min-[1001px]:h-full min-[1001px]:w-[var(--spine)] min-[1001px]:rotate-180 min-[1001px]:py-0 min-[1001px]:ps-8 min-[1001px]:pe-6 min-[1001px]:[writing-mode:vertical-rl]"
                 >
                   <span className="truncate font-bold uppercase tracking-wider text-paper md:text-lg">{p.title}</span>
-                  <span aria-hidden className="ms-auto font-code text-sm text-paper/50">
-                    {isOpen ? "−" : "+"}
-                  </span>
+                  {isOpen ? (
+                    <IconMinus aria-hidden size={16} stroke={1.5} className="ms-auto shrink-0 text-paper/50" />
+                  ) : (
+                    <IconPlus aria-hidden size={16} stroke={1.5} className="ms-auto shrink-0 text-paper/50" />
+                  )}
                 </button>
               </h3>
 
@@ -79,7 +68,6 @@ export default function Portfolio() {
                       </span>
                     ))}
                   </div>
-                  {/* loga klientów — oryginały wybielone filtrem (brightness-0 invert) */}
                   {p.clients && (
                     <div className="mt-6">
                       <p className="font-code text-[10px] uppercase tracking-widest text-paper/40">{t.portfolio.clients}</p>
@@ -96,15 +84,15 @@ export default function Portfolio() {
                       </ul>
                     </div>
                   )}
-                  {/* „zobacz więcej” tylko dla projektów z publicznym adresem (pole link w data.js) */}
                   {p.link && (
                     <a
                       href={p.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-4 inline-block font-hand text-xl text-paper/50 transition hover:text-paper md:mt-6"
+                      className="mt-4 inline-flex items-center gap-1.5 font-hand text-xl text-paper/50 transition hover:text-paper md:mt-6"
                     >
                       {t.portfolio.more}
+                      <IconArrowRight aria-hidden stroke={1.5} className="h-[0.9em] w-[0.9em]" />
                     </a>
                   )}
                 </div>
@@ -117,7 +105,7 @@ export default function Portfolio() {
       {/* w przepływie (nie absolute) — rezerwuje dół sekcji, parallaxa i tak jedzie tylko w poziomie;
           mt-auto dociska go do dołu, gdy akordeon zatrzyma się na max-h */}
       <h2 data-parallax="0.35" className="ghost-title mt-auto shrink-0 pt-3 text-[16vw] max-[1000px]:[@media(max-height:740px)]:hidden font-bold uppercase md:mb-4 md:pt-6 md:text-[min(14vw,20vh)]">
-        {t.sections.find((s) => s.id === "portfolio").label}
+        {t.sections.find((s) => s.id === "portfolio")?.label}
       </h2>
     </section>
   );

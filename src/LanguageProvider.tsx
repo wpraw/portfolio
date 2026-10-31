@@ -1,42 +1,46 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { CONTENT } from "./data.js";
+import { useEffect, useState, type ReactNode } from "react";
+import { CONTENT, type Lang } from "./data";
+import { LANGS, LanguageContext } from "./i18n";
 
 /* Język strony: zapisany wybór użytkownika → preferencje przeglądarki
    (navigator.languages) → angielski jako domyślny dla reszty świata. */
 
-export const LANGS = ["pl", "en"];
-const DEFAULT_LANG = "en";
+const DEFAULT_LANG: Lang = "en";
 const STORAGE_KEY = "lang";
 
-function detectLanguage() {
+const isLang = (value: unknown): value is Lang => LANGS.includes(value as Lang);
+
+function detectLanguage(): Lang {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (LANGS.includes(saved)) return saved;
-  } catch {}
+    if (isLang(saved)) return saved;
+  } catch {
+    // localStorage bywa niedostępny (tryb prywatny, zablokowane ciasteczka) — wtedy decyduje przeglądarka
+  }
 
   const prefs = navigator.languages?.length ? navigator.languages : [navigator.language];
   for (const tag of prefs) {
     const base = tag?.toLowerCase().split("-")[0]; // "pl-PL" → "pl"
-    if (LANGS.includes(base)) return base;
+    if (isLang(base)) return base;
   }
   return DEFAULT_LANG;
 }
 
-const LanguageContext = createContext(null);
-
-export function LanguageProvider({ children }) {
-  const [lang, setLangState] = useState(detectLanguage);
+export function LanguageProvider({ children }: { children: ReactNode }) {
+  const [lang, setLangState] = useState<Lang>(detectLanguage);
 
   useEffect(() => {
     document.documentElement.lang = lang;
     document.title = CONTENT[lang].meta.title;
   }, [lang]);
 
-  const setLang = (next) => {
+  const setLang = (next: Lang) => {
     setLangState(next);
     try {
       localStorage.setItem(STORAGE_KEY, next);
-    } catch {}
+    } catch {
+      // bez localStorage wybór działa tylko do przeładowania strony
+    }
   };
 
   return (
@@ -44,10 +48,4 @@ export function LanguageProvider({ children }) {
       {children}
     </LanguageContext.Provider>
   );
-}
-
-export function useLanguage() {
-  const ctx = useContext(LanguageContext);
-  if (!ctx) throw new Error("useLanguage musi być użyty wewnątrz <LanguageProvider>");
-  return ctx;
 }

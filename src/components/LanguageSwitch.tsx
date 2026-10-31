@@ -1,6 +1,4 @@
-import { LANGS, useLanguage } from "../i18n.jsx";
-
-/* Przełącznik PL / EN w belce nawigacji. */
+import { LANGS, useLanguage } from "../i18n";
 
 export default function LanguageSwitch() {
   const { lang, setLang, t } = useLanguage();
@@ -10,7 +8,6 @@ export default function LanguageSwitch() {
       {LANGS.map((l, i) => (
         <span key={l} className="flex items-center">
           {i > 0 && <span className="text-paper/30">/</span>}
-          {/* padding powiększa pole kliknięcia, ujemny margines pionowy nie podnosi belki */}
           <button
             onClick={() => setLang(l)}
             aria-pressed={lang === l}

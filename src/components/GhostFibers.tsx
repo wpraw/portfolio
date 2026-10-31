@@ -1,10 +1,4 @@
-/* GhostFibers — skopiowane z React Bits (https://reactbits.dev/backgrounds/ghost-fibers,
-   https://github.com/DavidHDev/react-bits), wersja JS + Tailwind.
-   Licencja: MIT + Commons Clause, (c) David Haz — można używać w projektach,
-   nie wolno sprzedawać samego komponentu.
-   Zmiany względem oryginału: usunięte 'use client'. */
-
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type HTMLAttributes } from 'react';
 
 const MAX_RENDER_DIM = 2400;
 const BLOOM_LEVELS = 5;
@@ -460,9 +454,9 @@ const COMPOSITE_UNIFORMS = [
   'uDpr'
 ];
 
-const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
-const compile = (gl, type, source) => {
+const compile = (gl: WebGL2RenderingContext, type: number, source: string) => {
   const shader = gl.createShader(type);
   if (!shader) return null;
   gl.shaderSource(shader, source);
@@ -472,7 +466,7 @@ const compile = (gl, type, source) => {
   return null;
 };
 
-const link = (gl, vertexSource, fragmentSource, names) => {
+const link = (gl: WebGL2RenderingContext, vertexSource: string, fragmentSource: string, names: readonly string[]) => {
   const vertex = compile(gl, gl.VERTEX_SHADER, vertexSource);
   const fragment = compile(gl, gl.FRAGMENT_SHADER, fragmentSource);
   const program = gl.createProgram();
@@ -486,19 +480,19 @@ const link = (gl, vertexSource, fragmentSource, names) => {
     gl.deleteProgram(program);
     return null;
   }
-  const uniforms = {};
+  const uniforms: Record<string, WebGLUniformLocation | null> = {};
   for (const name of names) uniforms[name] = gl.getUniformLocation(program, name);
   return { program, uniforms };
 };
 
-const frustum = (fov, aspect, near, far) => {
+const frustum = (fov: number, aspect: number, near: number, far: number) => {
   const f = 1 / Math.tan(fov / 2);
   const nf = 1 / (near - far);
   return [f / aspect, 0, 0, 0, 0, f, 0, 0, 0, 0, (far + near) * nf, -1, 0, 0, 2 * far * near * nf, 0];
 };
 
-const multiply = (a, b) => {
-  const out = new Array(16);
+const multiply = (a: number[], b: number[]) => {
+  const out = new Array<number>(16);
   for (let col = 0; col < 4; col += 1) {
     for (let row = 0; row < 4; row += 1) {
       out[col * 4 + row] =
@@ -508,7 +502,7 @@ const multiply = (a, b) => {
   return out;
 };
 
-const orientation = (yaw, pitch, roll) => {
+const orientation = (yaw: number, pitch: number, roll: number) => {
   const cy = Math.cos(yaw);
   const sy = Math.sin(yaw);
   const cp = Math.cos(pitch);
@@ -518,8 +512,8 @@ const orientation = (yaw, pitch, roll) => {
   const ry = [cy, 0, -sy, 0, 1, 0, sy, 0, cy];
   const rx = [1, 0, 0, 0, cp, sp, 0, -sp, cp];
   const rz = [cr, sr, 0, -sr, cr, 0, 0, 0, 1];
-  const mul = (a, b) => {
-    const out = new Array(9);
+  const mul = (a: number[], b: number[]) => {
+    const out = new Array<number>(9);
     for (let col = 0; col < 3; col += 1) {
       for (let row = 0; row < 3; row += 1) {
         out[col * 3 + row] = a[row] * b[col * 3] + a[3 + row] * b[col * 3 + 1] + a[6 + row] * b[col * 3 + 2];
@@ -530,11 +524,63 @@ const orientation = (yaw, pitch, roll) => {
   return mul(rz, mul(rx, ry));
 };
 
-const applyMat3 = (m, v) => [
+const applyMat3 = (m: number[], v: number[]) => [
   m[0] * v[0] + m[3] * v[1] + m[6] * v[2],
   m[1] * v[0] + m[4] * v[1] + m[7] * v[2],
   m[2] * v[0] + m[5] * v[1] + m[8] * v[2]
 ];
+
+export interface GhostFibersProps extends HTMLAttributes<HTMLDivElement> {
+  glowColor?: string;
+  lineColor?: string;
+  secondaryColor?: string;
+  gradient?: keyof typeof GRADIENTS;
+  fiberStyle?: keyof typeof FIBER_STYLES;
+  hoverEffect?: keyof typeof HOVER_EFFECTS;
+  speed?: number;
+  scale?: number;
+  rotation?: number;
+  rollSpeed?: number;
+  layers?: number;
+  waves?: number;
+  twist?: number;
+  threads?: number;
+  volume?: number;
+  spread?: number;
+  density?: number;
+  thickness?: number;
+  flow?: number;
+  tips?: number;
+  foldGlow?: number;
+  perspective?: number;
+  depthOfField?: number;
+  focusDepth?: number;
+  particles?: number;
+  sparkle?: number;
+  glow?: number;
+  brightness?: number;
+  vignette?: number;
+  grain?: number;
+  mouseStrength?: number;
+  mouseInteraction?: boolean;
+  pulseOnClick?: boolean;
+  intro?: boolean;
+  lightMode?: boolean;
+  paused?: boolean;
+  /** limit gęstości pikseli canvasa; domyślnie devicePixelRatio (max 2) */
+  dpr?: number;
+}
+
+type RenderTarget = {
+  texture: WebGLTexture | null;
+  framebuffer: WebGLFramebuffer | null;
+  width: number;
+  height: number;
+};
+
+type Camera = { eye: number[]; viewProj: number[]; orient: number[] };
+
+type Program = NonNullable<ReturnType<typeof link>>;
 
 const GhostFibers = ({
   glowColor = '#8b5cf6',
@@ -575,10 +621,10 @@ const GhostFibers = ({
   paused = false,
   dpr,
   ...rest
-}) => {
-  const containerRef = useRef(null);
-  const canvasRef = useRef(null);
-  const wakeRef = useRef(null);
+}: GhostFibersProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const wakeRef = useRef<(() => void) | null>(null);
   const settings = {
     glowColor: String(glowColor),
     lineColor: lineColor ? String(lineColor) : '',
@@ -618,8 +664,8 @@ const GhostFibers = ({
     paused,
     dpr
   };
+  type Settings = typeof settings;
   const settingsRef = useRef(settings);
-  settingsRef.current = settings;
 
   useEffect(() => {
     const container = containerRef.current;
@@ -643,8 +689,8 @@ const GhostFibers = ({
     if (!dots || !dust || !bright || !down || !up || !composite) return undefined;
 
     const format = floatTargets ? gl.RGBA16F : gl.RGBA8;
-    const makeTarget = () => ({ texture: null, framebuffer: gl.createFramebuffer(), width: 0, height: 0 });
-    const allocate = (target, width, height) => {
+    const makeTarget = (): RenderTarget => ({ texture: null, framebuffer: gl.createFramebuffer(), width: 0, height: 0 });
+    const allocate = (target: RenderTarget, width: number, height: number) => {
       if (target.texture && target.width === width && target.height === height) return;
       if (target.texture) gl.deleteTexture(target.texture);
       const texture = gl.createTexture();
@@ -687,14 +733,14 @@ const GhostFibers = ({
       look: { x: 0, y: 0, vx: 0, vy: 0 },
       focus: CAMERA + settingsRef.current.focusDepth * 3,
       pulse: { s: 0, age: 9, strength: 0, ribbon: 0 },
-      camera: null
+      camera: null as Camera | null
     };
     let raf = 0;
     let last = 0;
     let visible = true;
     let alive = true;
 
-    const toRgb = (value, fallback) => {
+    const toRgb = (value: string, fallback: number[]): number[] => {
       if (!probeContext || !value) return fallback;
       const css = /^[0-9a-f]{3,8}$/i.test(value) ? `#${value}` : value;
       probeContext.clearRect(0, 0, 1, 1);
@@ -705,7 +751,7 @@ const GhostFibers = ({
       return [r / 255, g / 255, b / 255];
     };
 
-    const resolveColors = s => {
+    const resolveColors = (s: Settings) => {
       const key = `${s.glowColor}|${s.lineColor}|${s.secondaryColor}|${s.lightMode}`;
       if (key === state.colorKey) return;
       state.colorKey = key;
@@ -715,7 +761,7 @@ const GhostFibers = ({
       else state.line = s.lightMode ? state.glow : state.glow.map(c => c + (1 - c) * 0.72);
     };
 
-    const centerLocal = (s, t, ribbon, waves) => {
+    const centerLocal = (s: number, t: number, ribbon: number, waves: number) => {
       const place = PLACEMENTS[ribbon];
       const ph = place[3];
       const x = s * RIBBON_LENGTH;
@@ -727,7 +773,7 @@ const GhostFibers = ({
       return [x, y, z];
     };
 
-    const cameraFor = s => {
+    const cameraFor = (s: Settings): Camera => {
       const aspect = state.width / Math.max(state.height, 1);
       const eye = [0, 0, CAMERA];
       const projection = frustum(FOV, aspect, 0.1, 60);
@@ -736,7 +782,7 @@ const GhostFibers = ({
       return { eye, viewProj: multiply(projection, view), orient };
     };
 
-    const screenOf = (camera, world) => {
+    const screenOf = (camera: Camera, world: number[]) => {
       const m = camera.viewProj;
       const x = m[0] * world[0] + m[4] * world[1] + m[8] * world[2] + m[12];
       const y = m[1] * world[0] + m[5] * world[1] + m[9] * world[2] + m[13];
@@ -744,10 +790,10 @@ const GhostFibers = ({
       return { x: ((x / w) * 0.5 + 0.5) * state.width, y: (0.5 - (y / w) * 0.5) * state.height, depth: w };
     };
 
-    const nearestOnRibbon = (s, px, py) => {
+    const nearestOnRibbon = (s: Settings, px: number, py: number) => {
       const camera = state.camera;
       if (!camera) return null;
-      let best = null;
+      let best: { gap: number; s: number; ribbon: number; depth: number } | null = null;
       for (let ribbon = 0; ribbon < s.layers; ribbon += 1) {
         for (let i = 0; i <= 96; i += 1) {
           const u = i / 96 - 0.5;
@@ -780,7 +826,7 @@ const GhostFibers = ({
       render();
     };
 
-    const drawPass = (program, target, source, texel) => {
+    const drawPass = (program: Program, target: RenderTarget, source: RenderTarget, texel: number[]) => {
       gl.bindFramebuffer(gl.FRAMEBUFFER, target.framebuffer);
       gl.viewport(0, 0, target.width, target.height);
       gl.useProgram(program.program);
@@ -938,7 +984,7 @@ const GhostFibers = ({
       gl.bindVertexArray(null);
     };
 
-    const frame = now => {
+    const frame = (now: number) => {
       raf = 0;
       if (!alive || !visible || document.hidden) return;
       const s = settingsRef.current;
@@ -1000,7 +1046,7 @@ const GhostFibers = ({
       if (!raf && alive && visible && !document.hidden) raf = requestAnimationFrame(frame);
     };
 
-    const onPointerMove = event => {
+    const onPointerMove = (event: PointerEvent) => {
       const rect = container.getBoundingClientRect();
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
@@ -1010,7 +1056,7 @@ const GhostFibers = ({
       wake();
     };
 
-    const onPointerDown = event => {
+    const onPointerDown = (event: PointerEvent) => {
       const s = settingsRef.current;
       if (!s.mouseInteraction || !s.pulseOnClick || event.button !== 0 || reduce) return;
       if (
@@ -1079,6 +1125,7 @@ const GhostFibers = ({
   }, []);
 
   useEffect(() => {
+    settingsRef.current = settings;
     wakeRef.current?.();
   });
 
