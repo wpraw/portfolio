@@ -1,4 +1,12 @@
 import photo from "./assets/photo.jpg";
+import gpwLogo from "./assets/logos/gpw.svg";
+import xkomLogo from "./assets/logos/x-kom.svg";
+import brokulLogo from "./assets/logos/diety-od-brokula.svg";
+import link4Logo from "./assets/logos/link4.png";
+import pekaoLeasingLogo from "./assets/logos/pekao-leasing.svg";
+import pkoLogo from "./assets/logos/pko-ubezpieczenia.svg";
+import egisLogo from "./assets/logos/egis.svg";
+import compensaLogo from "./assets/logos/compensa.svg";
 
 export const CONTACT = {
   name: "Wojciech Prawdzik",
@@ -10,6 +18,27 @@ export const CONTACT = {
 
 /*  Najlepiej pionowe, min. 1024 × 1160 px (dół karty zasłania pasek z imieniem). */
 export const PHOTO = photo;
+
+/*  Loga klientów w oryginalnych kolorach — na stronie wybielane filtrem CSS
+    (Link4 przerobione ręcznie na białe z wyciętymi literami, bo litery były białe).
+    Źródła: GPW — Wikimedia Commons, x-kom / Diety od Brokuła / Link4 — ich strony.
+    tall — logo dwuwierszowe, dostaje większą wysokość, żeby tekst nie był drobny. */
+const FORM_CLIENTS = [
+  { name: "GPW", logo: gpwLogo },
+  { name: "x-kom", logo: xkomLogo },
+  { name: "Diety od Brokuła", logo: brokulLogo, tall: true },
+  { name: "Link4", logo: link4Logo },
+];
+
+/*  Źródła: strony firm (Pekao Leasing, PKO Ubezpieczenia, Egis Pharmaceuticals, Compensa).
+    Egis przycięty do znaku + nazwy, bez sloganu. */
+const INTRANET_CLIENTS = [
+  { name: "Pekao Leasing", logo: pekaoLeasingLogo },
+  { name: "PKO TU", logo: pkoLogo, tall: true },
+  { name: "Link4", logo: link4Logo },
+  { name: "Egis", logo: egisLogo, tall: true },
+  { name: "Compensa", logo: compensaLogo, tall: true },
+];
 
 export const MARQUEE = [
   "React",
@@ -90,6 +119,7 @@ export const CONTENT = {
     portfolio: {
       heading: "Rzeczy, które zbudowałem",
       more: "zobacz więcej →",
+      clients: "Klienci",
     },
     contact: {
       headline: "Masz pomysł na projekt?",
@@ -154,23 +184,33 @@ export const CONTENT = {
     projects: [
       {
         title: "Lexody",
+        link: "https://lexody.pl",
         tags: ["Next.js", "NestJS", "Drizzle", "Postgres", "Nx", "Tauri"],
-        desc: "Aplikacja dla prawników do obsługi zleceń prawniczych.",
+        desc: "Rozwijam fullstackowo aplikację dla prawników do obsługi zleceń. Użytkownik znajduje w niej zastępstwo procesowe albo podejmuje zlecenie z listy ogłoszeń. Pracowałem też nad modułem dla osób spoza branży, które w kilka kliknięć dobierają prawnika do konsultacji lub poprowadzenia sprawy. Aplikacja działa także na Androidzie i iOS.",
       },
       {
         title: "Colway",
+        link: "https://sklep.colway.pl",
         tags: ["Next.js", "Redux", "Styled Components"],
-        desc: "Aplikacja dla użytkowników sklepu internetowego i zarządzania wielopoziomową strukturą marketingową - złożona logika biznesowa i integracje API.",
+        desc: "Tworzyłem aplikację dla użytkowników z branży marketingu wielopoziomowego: sklep internetowy, zarządzanie wielopoziomową strukturą sprzedaży i złożoną logikę biznesową. Wdrożyłem headless CMS, autoryzację i uwierzytelnianie z zarządzaniem sesją, a komunikację z zewnętrznym REST API oparłem na architekturze BFF. Zoptymalizowałem też renderowanie sklepu ze zdjęciami i miniaturami produktów.",
       },
       {
         title: "Formularze dla klientów",
         tags: ["React", "TypeScript"],
-        desc: "Formularze i narzędzia biznesowe dla różnych organizacji - od wymagań zebranych z klientem po wdrożenie.",
+        desc: "Tworzyłem formularze i narzędzia biznesowe dla organizacji takich jak GPW, x-kom, Diety od Brokuła i Link4. Budowałem wielokrokowe procesy z rozbudowaną walidacją biznesową wprowadzanych danych i dbałem o to, żeby działały wydajnie i dały się skalować.",
+        clients: FORM_CLIENTS,
       },
       {
         title: "Intranety SharePoint",
         tags: ["SharePoint", "SPFx", "Power Automate", "Azure", "Microsoft 365"],
-        desc: "Design i development intranetów oraz customowe rozwiązania w SharePoint Server, SharePoint Online.",
+        desc: "Projektowałem i budowałem intranety oraz rozwiązania szyte na miarę w SharePoint Server i SharePoint Online. Analizowałem strukturę i wymagania firm, wdrażałem i konfigurowałem SharePoint, a procesy automatyzowałem w Power Automate. Prototypowałem też witryny pod kątem UI/UX.",
+        clients: INTRANET_CLIENTS,
+      },
+      {
+        title: "Oddech Nieba",
+        link: "https://oddechnieba.pl",
+        tags: ["Next.js", "TypeScript", "Tailwind", "GSAP", "Framer Motion", "Vercel"],
+        desc: "Zbudowałem serwis gabinetu Oddech Nieba ze Słupska - o bezdechu sennym, wodoroterapii i terapiach, które gabinet oferuje. Przygotowałem bazę wiedzy, opisy metod leczenia i wielokrokowy test ryzyka bezdechu z punktacją. Strona jest w pełni statyczna (SSG) i dopracowana pod polskie SEO: metadane, dane strukturalne JSON-LD i sitemapa. Animacje zrobiłem w GSAP i Framer Motion, a całość wdrożyłem na Vercel.",
       },
     ],
   },
@@ -238,6 +278,7 @@ export const CONTENT = {
     portfolio: {
       heading: "Things I've built",
       more: "see more →",
+      clients: "Clients",
     },
     contact: {
       headline: "Got a project in mind?",
@@ -301,23 +342,33 @@ export const CONTENT = {
     projects: [
       {
         title: "Lexody",
+        link: "https://lexody.pl",
         tags: ["Next.js", "NestJS", "Drizzle", "Postgres", "Nx", "Tauri"],
-        desc: "An application for lawyers handling legal assignments.",
+        desc: "I develop a fullstack app for lawyers to manage legal assignments. Users find a substitute lawyer for a hearing or take on an assignment from a list of postings. I also worked on a module for non-lawyers, who can match with a lawyer for a consultation or a case in just a few clicks. The app also runs on Android and iOS.",
       },
       {
         title: "Colway",
-        tags: ["React", "Redux", "Styled Components"],
-        desc: "An app for online store users and for managing a multi-level marketing structure - complex business logic and API integrations.",
+        link: "https://sklep.colway.pl",
+        tags: ["Next.js", "Redux", "Styled Components"],
+        desc: "I developed an app for users in the multi-level marketing industry: an online store, management of a multi-level sales structure and complex business logic. I implemented a headless CMS, authentication and authorization with session management, and based communication with an external REST API on a BFF architecture. I also optimized store rendering with product images and thumbnails.",
       },
       {
         title: "Client forms",
         tags: ["React", "TypeScript"],
-        desc: "Forms and business tools for different organizations - from requirements gathered with the client to release.",
+        desc: "I built forms and business tools for organizations such as the Warsaw Stock Exchange (GPW), x-kom, Diety od Brokuła and Link4. I built multi-step flows with in-depth business validation of the entered data and made sure they performed well and scaled.",
+        clients: FORM_CLIENTS,
       },
       {
         title: "SharePoint intranets",
         tags: ["SharePoint", "SPFx", "Power Automate", "Azure", "Microsoft 365"],
-        desc: "Designing and developing intranets and custom solutions in SharePoint Server, SharePoint Online.",
+        desc: "I designed and built intranets and custom solutions in SharePoint Server and SharePoint Online. I analyzed company structures and requirements, deployed and configured SharePoint, and automated processes with Power Automate. I also prototyped sites with UI/UX in mind.",
+        clients: INTRANET_CLIENTS,
+      },
+      {
+        title: "Oddech Nieba",
+        link: "https://oddechnieba.pl",
+        tags: ["Next.js", "TypeScript", "Tailwind", "GSAP", "Framer Motion", "Vercel"],
+        desc: "I built the website of the Oddech Nieba clinic in Słupsk - about sleep apnea, hydrogen therapy and the treatments the clinic offers. I prepared a knowledge base, treatment descriptions and a multi-step sleep apnea risk test with scoring. The site is fully static (SSG) and tuned for Polish SEO: metadata, JSON-LD structured data and a sitemap. I made the animations with GSAP and Framer Motion and deployed it on Vercel.",
       },
     ],
   },
