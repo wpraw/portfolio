@@ -1,6 +1,7 @@
 import { CONTACT } from "../data.js";
 import { useLanguage } from "../i18n.jsx";
 import LanguageSwitch from "./LanguageSwitch.jsx";
+import SocialLinks from "./SocialLinks.jsx";
 
 /* Stała belka nawigacji — szary pasek z makiety (strona 2).
    Kliknięcie sekcji przewija pionowy scroll do pozycji panelu. */
@@ -11,7 +12,7 @@ export default function Nav({ active, onNavigate }) {
   return (
     <header
       data-nav
-      className="fixed inset-x-0 top-0 z-50 flex items-center justify-between bg-steel/90 px-5 py-3 backdrop-blur-sm md:px-10"
+      className="fixed inset-x-0 top-0 z-50 flex items-center justify-between bg-steel/90 px-5 py-3 md:px-10"
     >
       <nav className="flex items-center gap-5 md:gap-8">
         {t.sections.map((s, i) => (
@@ -31,13 +32,17 @@ export default function Nav({ active, onNavigate }) {
           </button>
         ))}
       </nav>
-      <div className="flex items-center gap-6 md:gap-8">
+      {/* do 1000px telefon, ikony i język są w stopce (Footer) */}
+      <div className="hidden items-center gap-6 min-[1001px]:flex md:gap-8">
         <a
           href={`tel:${CONTACT.phone.replace(/\s/g, "")}`}
-          className="hidden font-code text-xs tracking-widest text-paper/70 hover:text-paper sm:block"
+          className="font-code text-xs tracking-widest text-paper/70 hover:text-paper"
         >
           {CONTACT.phone}
         </a>
+        <div className="flex items-center gap-5">
+          <SocialLinks />
+        </div>
         <LanguageSwitch />
       </div>
     </header>

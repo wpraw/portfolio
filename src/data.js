@@ -1,28 +1,27 @@
-/* Neutralne placeholdery — podmień na własne treści.
-   CONTACT i MARQUEE są wspólne, reszta siedzi w CONTENT[lang]. */
+import photo from "./assets/photo.jpg";
 
 export const CONTACT = {
   name: "Wojciech Prawdzik",
   email: "w.prawdzik@onet.pl",
   phone: "+48 881 465 502",
+  github: "https://github.com/wpraw",
+  linkedin: "https://www.linkedin.com/in/wojciech-prawdzik-46754625a/",
 };
 
-/* Zdjęcie na identyfikator w sekcji O mnie. null = placeholder.
-   Żeby podmienić: wrzuć plik do src/assets i ustaw np.
-     import photo from "./assets/photo.jpg";
-     export const PHOTO = photo;
-   Najlepiej pionowe, min. 1024 × 1160 px (dół karty zasłania pasek z imieniem). */
-export const PHOTO = null;
+/*  Najlepiej pionowe, min. 1024 × 1160 px (dół karty zasłania pasek z imieniem). */
+export const PHOTO = photo;
 
 export const MARQUEE = [
   "React",
+  "Next.js",
   "TypeScript",
   "Node.js",
   "NestJS",
+  "Drizzle ORM",
+  "Postgres",
   "Tailwind",
-  "GSAP",
-  "PostgreSQL",
-  "Docker",
+  "Nx",
+  "Tauri",
   "Git",
   "Vite",
 ];
@@ -42,7 +41,6 @@ export const CONTENT = {
     langSwitch: "Zmień język",
 
     home: {
-      // greeting: "Wpadaj, przyjacielu —",
       ctaPortfolio: "Portfolio",
       ctaResume: "Życiorys",
       ctaContact: "Kontakt",
@@ -51,36 +49,43 @@ export const CONTENT = {
     about: {
       heading: "O mnie",
       hello: "Cześć, jestem",
-      bio: "To jest placeholder na Twoje bio — dwa, trzy zdania o tym, kim jesteś, co programujesz i co Cię kręci w budowaniu softu.",
+      bio: "Programista z 4-letnim doświadczeniem w React i Next.js, a przy aplikacji Lexody także fullstack (NestJS, Drizzle). Łączę programowanie z organizacją pracy zespołu: podejmuję decyzje architektoniczne, prowadzę code review i współpracuję bezpośrednio z klientami. Dopadła mnie psychoza AI więc coraz więcej czasu poświęcam też AI engineeringowi.",
       facts: [
-        { value: "4+", label: "lata w kodzie" },
+        { value: "4", label: "lata w kodzie" },
         { value: "Gdańsk", label: "baza" },
         { value: "PL · EN", label: "języki" },
+        { value: "0", label: "Fuckupów na prodzie" },
       ],
       hint: "złap mnie i rzuć ↻",
-      // napis na smyczy identyfikatora (powtarzany wzdłuż taśmy)
       strap: "<HELLO WORLD />",
       approachTitle: "Jak pracuję",
       principles: [
         {
-          title: "Prosto przed sprytnie",
-          desc: "Czytelny kod wygrywa z błyskotliwym — następna osoba w zespole też musi go zrozumieć.",
+          title: "Architektura i jakość",
+          desc: "Podejmuję decyzje architektoniczne na froncie i prowadzę code review, żeby aplikacje dało się łatwo rozwijać i utrzymywać.",
         },
         {
-          title: "Komunikacja",
-          desc: "Pytam wcześnie, raportuję jasno i nie zostawiam niespodzianek na koniec sprintu.",
+          title: "Blisko klienta",
+          desc: "Biorę odpowiedzialność za produkt. Sam zbieram wymagania i rozmawiam z klientami, więc wiem, po co powstaje każda funkcja - od pierwszej rozmowy po wdrożenie.",
         },
         {
-          title: "Dowożę",
-          desc: "Działający, przetestowany kawałek dziś jest lepszy niż perfekcyjny za miesiąc.",
+          title: "Zespół",
+          desc: "Jako zastępca kierownika planuję pracę, deleguję zadania i wspieram innych mentoringiem w zespole 4–8 osób.",
+        },
+        {
+          title: "Efekty",
+          desc: "Dbam o klienta i dowoże coś co realnie działa i ma wartość.",
         },
       ],
       photo: "TWOJE ZDJĘCIE",
     },
     resume: {
-      skillsTitle: "Umiem to i to…",
+      skillsTitle: "Umiem to…",
       experienceTitle: "Doświadczenie i edukacja",
-      hobbiesTitle: "Hobby i co wnoszę",
+      teamValueTitle: "Co wnoszę do zespołu",
+      clientTitle: "Co wnoszę dla klienta",
+      // tabliczka rysunkowa w prawym dolnym rogu (blueprint)
+      titleBlock: { drawn: "Rys.", sheet: "Ark.", scale: "Skala", rev: "Rew." },
     },
     portfolio: {
       heading: "Rzeczy, które zbudowałem",
@@ -92,64 +97,80 @@ export const CONTENT = {
     },
 
     skills: [
-      "JavaScript / TypeScript",
-      "React + ekosystem",
-      "Node.js / NestJS",
-      "SQL / Drizzle ORM",
-      "HTML / CSS / Tailwind",
-      "Git / CI-CD",
-      "REST / GraphQL",
-      "Testy (Vitest, Jest)",
+      "TypeScript / JavaScript",
+      "React / Next.js",
+      "Redux Toolkit / TanStack Query",
+      "Tailwind / Styled Components / CSS Modules",
+      "Node.js / NestJS / Express",
+      "Drizzle ORM / Postgres / MsSql",
+      "AI engineering, RAG, MCP, context management, workflow design",
+      "Tauri (WebView)",
+      "Nx / Git / GitLab CI/CD",
+      "Microsoft 365 / SharePoint / SPFx",
     ],
     languages: [
       { name: "Polski", level: "ojczysty", pct: 100 },
       { name: "Angielski", level: "C1", pct: 85 },
+      { name: "Niemiecki", level: "A2", pct: 45 },
     ],
     experience: [
       {
-        period: "2024 — teraz",
-        title: "Fullstack Developer",
-        place: "Nazwa firmy, Gdańsk",
-        desc: "Krótki opis: co robisz, w jakim stacku, jaki był efekt.",
+        period: "2022 - teraz",
+        title: "Software Developer",
+        place: "Nexpertis Sp. z o.o., Gdańsk",
+        desc: "Rozpocząłem jako programista frontendowy, teraz fullstack przy Lexody (Next.js, NestJS, Drizzle, Nx, Tauri), aplikacje dla klientów, code review i mentoring, zastępca kierownika zespołu.",
       },
       {
-        period: "2022 — 2024",
-        title: "Junior Developer",
-        place: "Poprzednia firma",
-        desc: "Placeholder — dwie linijki o zakresie obowiązków i technologiach.",
+        period: "2026",
+        title: "AI_devs 4 Builders",
+        place: "Certyfikat AI_devs",
+        desc: "Context engineering, projektowanie agentów AI i workflowów, wdrażanie aplikacji generatywnych.",
       },
       {
-        period: "2019 — 2022",
-        title: "Studia inżynierskie",
-        place: "Uczelnia, kierunek",
-        desc: "Edukacja — specjalizacja, projekt dyplomowy, koła naukowe.",
+        period: "2019 - 2023",
+        title: "Informatyka, inżynier",
+        place: "Wyższa Szkoła Bankowa w Poznaniu",
+        desc: "Specjalizacja: programowanie. Praca dyplomowa: portal społecznościowy z modułem kursów (React, Redux, .NET C#).",
+      },
+      {
+        period: "2015 - 2022",
+        title: "Kierownik",
+        place: "Mobilna kawiarnia",
+        desc: "Zarządzanie, szkolenie pracowników i prowadzenie sprzedaży.",
       },
     ],
-    hobbies: [
-      "Placeholder hobby #1 — np. wspinaczka",
-      "Placeholder hobby #2 — np. fotografia",
-      "Co wnoszę do zespołu: placeholder o samodzielności i komunikacji.",
+    teamValue: [
+      {title:"Kontakt z klientem", desc:"od zbierania wymagań, przez realizację, po rozmowy sprzedażowe."}, 
+      {title:"Samodzielność", desc:"prowadzę funkcję od pomysłu do produkcji, po stronie frontendu i backendu."}, 
+      {title:"Organizacja pracy", desc:"planning, delegowanie zadań i reagowanie w nagłych sytuacjach."}, 
+      {title:"Mentoring i dzielenie się wiedzą", desc:"standardy pracy i code review w zespole."},
+    ],
+    clientValue: [
+      {title:"Zrozumienie potrzeb", desc:"zanim napiszę kod, dopytuję o cel biznesowy i użytkowników."}, 
+      {title:"Przewidywalność", desc:"jasno komunikuję postępy, terminy i ryzyka."}, 
+      {title:"Działający produkt", desc:"dowożę funkcje gotowe do wdrożenia i łatwe w dalszym rozwoju."}, 
+      {title:"Doradztwo technologiczne", desc:"pomagam dobrać rozwiązanie do budżetu i skali, także z AI."},
     ],
     projects: [
       {
-        title: "Projekt Alfa",
-        tags: ["React", "GSAP", "Vite"],
-        desc: "Placeholder opisu projektu — jedno zdanie o tym, co robi i dla kogo.",
+        title: "Lexody",
+        tags: ["Next.js", "NestJS", "Drizzle", "Postgres", "Nx", "Tauri"],
+        desc: "Aplikacja dla prawników do obsługi zleceń prawniczych.",
       },
       {
-        title: "Projekt Beta",
-        tags: ["NestJS", "PostgreSQL"],
-        desc: "Placeholder — API, architektura, ciekawy problem, który rozwiązałeś.",
+        title: "Colway",
+        tags: ["Next.js", "Redux", "Styled Components"],
+        desc: "Aplikacja dla użytkowników sklepu internetowego i zarządzania wielopoziomową strukturą marketingową - złożona logika biznesowa i integracje API.",
       },
       {
-        title: "Projekt Gamma",
-        tags: ["TypeScript", "Tailwind"],
-        desc: "Placeholder — aplikacja frontowa z naciskiem na animacje i UX.",
+        title: "Formularze dla klientów",
+        tags: ["React", "TypeScript"],
+        desc: "Formularze i narzędzia biznesowe dla różnych organizacji - od wymagań zebranych z klientem po wdrożenie.",
       },
       {
-        title: "Projekt Delta",
-        tags: ["Node.js", "Docker"],
-        desc: "Placeholder — narzędzie CLI / automatyzacja / side-project.",
+        title: "Intranety SharePoint",
+        tags: ["SharePoint", "SPFx", "Power Automate", "Azure", "Microsoft 365"],
+        desc: "Design i development intranetów oraz customowe rozwiązania w SharePoint Server, SharePoint Online.",
       },
     ],
   },
@@ -168,7 +189,7 @@ export const CONTENT = {
     langSwitch: "Change language",
 
     home: {
-      // greeting: "Come on in, friend —",
+      // greeting: "Come on in, friend -",
       ctaPortfolio: "Portfolio",
       ctaResume: "Resume",
       ctaContact: "Contact",
@@ -177,27 +198,32 @@ export const CONTENT = {
     about: {
       heading: "About",
       hello: "Hi, I'm",
-      bio: "This is a placeholder for your bio — two or three sentences about who you are, what you build and what excites you about making software.",
+      bio: "Software developer with 4 years of experience in React and Next.js, also working fullstack on the Lexody application (NestJS, Drizzle). I combine hands-on development with team coordination: I make architecture decisions, run code reviews and work directly with clients. I got AI psychosis lately so I'm spending more and more time on AI engineering.",
       facts: [
-        { value: "4+", label: "years in code" },
+        { value: "4", label: "years in code" },
         { value: "Gdańsk", label: "based in" },
         { value: "PL · EN", label: "languages" },
+        { value: "0", label: "Fuckups on prod" },
       ],
       hint: "grab me & throw ↻",
       strap: "<HELLO WORLD />",
       approachTitle: "How I work",
       principles: [
         {
-          title: "Simple over clever",
-          desc: "Readable code beats brilliant code — the next person on the team has to understand it too.",
+          title: "Architecture & quality",
+          desc: "I make frontend architecture decisions and run code reviews, so applications stay easy to extend and maintain.",
         },
         {
-          title: "Communication",
-          desc: "I ask early, report clearly and leave no surprises for the end of the sprint.",
+          title: "Close to the client",
+          desc: "I gather requirements and talk to clients myself, so I know why every feature exists - from the first call to release.",
         },
         {
-          title: "I ship",
-          desc: "A working, tested slice today beats a perfect one next month.",
+          title: "Team",
+          desc: "As Deputy Team Lead I plan work, delegate tasks and mentor others in a team of 4–8 people.",
+        },
+        {
+          title: "Results",
+          desc: "I take responsibility for the product. I gather requirements and talk to clients myself, so I know why every feature exists - from the first call to release.",
         },
       ],
       photo: "YOUR PHOTO",
@@ -205,7 +231,9 @@ export const CONTENT = {
     resume: {
       skillsTitle: "Things I'm good at…",
       experienceTitle: "Experience & education",
-      hobbiesTitle: "Hobbies & what I bring",
+      teamValueTitle: "What I bring to a team",
+      clientTitle: "What I bring to a client",
+      titleBlock: { drawn: "Drawn", sheet: "Sheet", scale: "Scale", rev: "Rev." },
     },
     portfolio: {
       heading: "Things I've built",
@@ -217,64 +245,79 @@ export const CONTENT = {
     },
 
     skills: [
-      "JavaScript / TypeScript",
-      "React + ecosystem",
-      "Node.js / NestJS",
-      "SQL / Drizzle ORM",
-      "HTML / CSS / Tailwind",
-      "Git / CI-CD",
-      "REST / GraphQL",
-      "Testing (Vitest, Jest)",
+      "TypeScript / JavaScript",
+      "React / Next.js",
+      "Redux Toolkit / TanStack Query",
+      "Tailwind / Styled Components / SCSS",
+      "Node.js / NestJS / Express",
+      "Drizzle ORM / Postgres / MsSql",
+      "AI engineering, RAG, MCP, context management, workflow design",
+      "Tauri (WebView)",
+      "Nx / Git / GitLab CI/CD",
+      "Microsoft 365 / SharePoint / SPFx",
     ],
     languages: [
       { name: "Polish", level: "native", pct: 100 },
       { name: "English", level: "C1", pct: 85 },
+      { name: "German", level: "A2", pct: 45 },
     ],
     experience: [
       {
-        period: "2024 — present",
-        title: "Fullstack Developer",
-        place: "Company name, Gdańsk",
-        desc: "Short summary: what you do, which stack, what the outcome was.",
+        period: "2022 - present",
+        title: "Software Developer",
+        place: "Nexpertis Sp. z o.o., Gdańsk",
+        desc: "Started with Frontend stack, now fullstack on Lexody (Next.js, NestJS, Drizzle, Nx, Tauri), client applications, code reviews and mentoring, Deputy Team Lead.",
       },
       {
-        period: "2022 — 2024",
-        title: "Junior Developer",
-        place: "Previous company",
-        desc: "Placeholder — two lines about responsibilities and technologies.",
+        period: "2026",
+        title: "AI_devs 4 Builders",
+        place: "AI_devs certificate",
+        desc: "Context engineering, AI agent and workflow design, deploying generative applications.",
       },
       {
-        period: "2019 — 2022",
-        title: "Engineering degree",
-        place: "University, field of study",
-        desc: "Education — specialization, thesis project, student clubs.",
+        period: "2019 - 2023",
+        title: "BEng in Computer Science",
+        place: "WSB University in Poznań",
+        desc: "Specialization: programming. Thesis: social platform with a course module (React, Redux, .NET C#).",
+      },
+      {
+        period: "2015 - 2022",
+        title: "Manager",
+        place: "Mobile coffee shop",
+        desc: "Daily operations, employee training and sales.",
       },
     ],
-    hobbies: [
-      "Placeholder hobby #1 — e.g. climbing",
-      "Placeholder hobby #2 — e.g. photography",
-      "What I bring to a team: placeholder about ownership and communication.",
+    teamValue: [
+      {title:"Client communication", desc:"from gathering requirements through delivery to sales conversations."}, 
+      {title:"Ownership", desc:"I take a feature from idea to production, across frontend and backend."}, 
+      {title:"Work organization", desc:"planning, task delegation and handling urgent situations."}, 
+      {title:"Mentoring and knowledge sharing", desc:"engineering standards and code reviews in the team."},
     ],
+    clientValue: [
+      {title:"Understanding your needs", desc:"before I write code, I ask about business goals and users."}, 
+      {title:"Predictability", desc:"clear updates on progress, deadlines and risks."}, 
+      {title:"A working product", desc:"features ready for release and easy to build on."}, 
+      {title:"Technology advice", desc:"I help pick a solution that fits your budget and scale, AI included."}],
     projects: [
       {
-        title: "Project Alpha",
-        tags: ["React", "GSAP", "Vite"],
-        desc: "Project description placeholder — one sentence on what it does and for whom.",
+        title: "Lexody",
+        tags: ["Next.js", "NestJS", "Drizzle", "Postgres", "Nx", "Tauri"],
+        desc: "An application for lawyers handling legal assignments.",
       },
       {
-        title: "Project Beta",
-        tags: ["NestJS", "PostgreSQL"],
-        desc: "Placeholder — API, architecture, an interesting problem you solved.",
+        title: "Colway",
+        tags: ["React", "Redux", "Styled Components"],
+        desc: "An app for online store users and for managing a multi-level marketing structure - complex business logic and API integrations.",
       },
       {
-        title: "Project Gamma",
-        tags: ["TypeScript", "Tailwind"],
-        desc: "Placeholder — a frontend app focused on animation and UX.",
+        title: "Client forms",
+        tags: ["React", "TypeScript"],
+        desc: "Forms and business tools for different organizations - from requirements gathered with the client to release.",
       },
       {
-        title: "Project Delta",
-        tags: ["Node.js", "Docker"],
-        desc: "Placeholder — a CLI tool / automation / side project.",
+        title: "SharePoint intranets",
+        tags: ["SharePoint", "SPFx", "Power Automate", "Azure", "Microsoft 365"],
+        desc: "Designing and developing intranets and custom solutions in SharePoint Server, SharePoint Online.",
       },
     ],
   },

@@ -4,7 +4,10 @@
    nie wolno sprzedawać samego komponentu.
    Zmiany względem oryginału: usunięte 'use client' oraz nowy prop `frameRef` —
    canvas zajmuje cały kontener (np. sekcję, więc litery można przeciągać wszędzie),
-   a napis jest układany w prostokącie wskazanego elementu, bez marginesu 5%. */
+   a napis jest układany w prostokącie wskazanego elementu, bez marginesu 5%.
+   Prop `hoverPadding` — kursor przejmuje soczewkę (i przerywa automatyczny sweep)
+   tylko w obrębie napisu powiększonego o ten margines; przeciąganie nadal działa
+   na całym kontenerze. */
 
 import { useEffect, useRef } from 'react';
 
@@ -65,6 +68,7 @@ const TechText = ({
   introDuration = 2,
   guides = false,
   frameRef,
+  hoverPadding = Infinity,
   className = '',
   style
 }) => {
@@ -101,7 +105,8 @@ const TechText = ({
       intro,
       introDuration,
       guides,
-      frameRef
+      frameRef,
+      hoverPadding
     };
     wakeRef.current();
   });
@@ -729,7 +734,15 @@ const TechText = ({
       const progress = introOn ? clamp01((introClock - INTRO_DELAY) / Math.max(0.3, s.introDuration)) : 1;
       introducing = introOn && progress < 1;
 
-      const sweeping = !introducing && s.sweep && !reducedMotion && !pointer.inside && dragging < 0;
+      // kursor liczy się tylko blisko napisu — dalej w kontenerze sweep leci dalej
+      const pad = s.hoverPadding;
+      const near =
+        pointer.inside &&
+        pointer.x >= view.left - pad &&
+        pointer.x <= view.right + pad &&
+        pointer.y >= view.top - pad &&
+        pointer.y <= view.bottom + pad;
+      const sweeping = !introducing && s.sweep && !reducedMotion && !near && dragging < 0;
       if (sweeping) clock += dt * s.speed;
       pulse += dt;
       let targetX = pointer.x;
@@ -738,13 +751,13 @@ const TechText = ({
         targetX = view.left + (view.right - view.left) * (0.5 - 0.5 * Math.cos(clock * 0.45));
         targetY = view.top + (view.bottom - view.top) * (0.45 + 0.1 * Math.sin(clock * 0.8));
       }
-      const active = !introducing && (pointer.inside || sweeping || dragging >= 0);
+      const active = !introducing && (near || sweeping || dragging >= 0);
       if (active && !placed) {
         lens.x = targetX;
         lens.y = targetY;
       }
       if (active) {
-        const lag = pointer.inside ? 0.05 : 0.22;
+        const lag = near ? 0.05 : 0.22;
         lens.x = approach(lens.x, targetX, dt, lag);
         lens.y = approach(lens.y, targetY, dt, lag);
       }
@@ -835,7 +848,7 @@ const TechText = ({
 
       guideAlpha = approach(guideAlpha, s.guides && !introducing && (focus >= 0 || presence > 0.4) ? 1 : 0, dt, 0.14);
 
-      const hovering = !introducing && focus >= 0 && pointer.inside;
+      const hovering = !introducing && focus >= 0 && near;
       const nextCursor =
         dragging >= 0 ? 'grabbing' : hovering && s.draggable ? 'grab' : hovering && s.clickKick ? 'pointer' : '';
       if (nextCursor !== cursor) {

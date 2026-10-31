@@ -65,3 +65,48 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* --- blueprint (Życiorys) --- */
+
+/* papier milimetrowy: drobna kratka co 24px, gruba co 120px */
+.blueprint-grid {
+  --bp-fine: color-mix(in srgb, var(--color-paper) 5%, transparent);
+  --bp-major: color-mix(in srgb, var(--color-paper) 11%, transparent);
+  background-image:
+    linear-gradient(var(--bp-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bp-major) 1px, transparent 1px),
+    linear-gradient(var(--bp-fine) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bp-fine) 1px, transparent 1px);
+  background-size:
+    120px 120px,
+    120px 120px,
+    24px 24px,
+    24px 24px;
+}
+
+/* linia wymiarowa |—— etykieta ——| (kolor = currentColor) */
+.dim {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+}
+.dim::before,
+.dim::after {
+  content: "";
+  flex: 1;
+  height: 7px;
+  background: linear-gradient(currentColor, currentColor) center / 100% 1px no-repeat;
+}
+.dim::before {
+  border-left: 1px solid currentColor;
+}
+.dim::after {
+  border-right: 1px solid currentColor;
+}
+
+/* podziałka pod paskiem języka: kreska co 25% */
+.gauge {
+  height: 5px;
+  border-right: 1px solid color-mix(in srgb, var(--color-paper) 35%, transparent);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--color-paper) 35%, transparent) 1px, transparent 1px) 0 0 / 25% 100% repeat-x;
+}

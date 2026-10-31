@@ -6,6 +6,7 @@ import { CustomEase } from "gsap/CustomEase";
 import { useGSAP } from "@gsap/react";
 
 import Nav from "./components/Nav.jsx";
+import Footer from "./components/Footer.jsx";
 import Home from "./panels/Home.jsx";
 import About from "./panels/About.jsx";
 import Resume from "./panels/Resume.jsx";
@@ -196,8 +197,10 @@ export default function App() {
         </div>
       </div>
 
-      {/* pasek postępu podróży */}
-      <div className="fixed bottom-0 left-0 z-50 h-[3px] w-full bg-paper/10">
+      <Footer />
+
+      {/* pasek postępu podróży — do 1000px leży na górnej krawędzi stopki */}
+      <div className="fixed bottom-0 left-0 z-50 h-[3px] w-full bg-paper/10 max-[1000px]:bottom-12">
         <div data-progress className="h-full w-full origin-left scale-x-0 bg-royal" />
       </div>
     </div>
