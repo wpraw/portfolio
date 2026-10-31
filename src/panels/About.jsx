@@ -46,6 +46,10 @@ export default function About() {
       {/* identyfikator na smyczy — zwisa spod belki nawigacji; warstwa na całą sekcję,
           więc kartę przycina dopiero granica sekcji (leży pod kolumnami z treścią) */}
       <div className="absolute inset-0">
+        {/* podpowiedź przed kartą w DOM — przeciągnięta karta ją przykrywa */}
+        <p className="pointer-events-none absolute inset-x-0 bottom-[20%] text-center font-hand text-2xl text-paper/45">
+          {t.about.hint}
+        </p>
         <Suspense fallback={null}>
           <Lanyard
             frontImage={faces.front}
@@ -58,18 +62,12 @@ export default function About() {
             inertia={1}
           />
         </Suspense>
-        <p className="pointer-events-none absolute inset-x-0 bottom-[10%] text-center font-hand text-2xl text-paper/45">
-          {t.about.hint}
-        </p>
       </div>
 
       {/* siatka nie łapie kursora — tylko kolumny z treścią, reszta trafia do karty */}
       <div className="pointer-events-none relative z-10 grid h-full grid-cols-[1fr_minmax(0,0.9fr)_1fr]">
         {/* lewa kolumna — kim jestem */}
         <div className="pointer-events-auto self-center pt-16 pl-[8vw] pr-6">
-          <p className="font-code text-[11px] uppercase tracking-[0.35em] text-paper/50">
-            01 — {t.about.heading}
-          </p>
           <p className="mt-8 font-hand text-4xl text-paper/70 md:text-5xl">{t.about.hello}</p>
           <h3 className="text-6xl font-bold uppercase leading-[0.95] tracking-tight text-paper md:text-8xl">
             {firstName}.
@@ -86,14 +84,6 @@ export default function About() {
               </div>
             ))}
           </dl>
-
-          <a
-            href={`mailto:${CONTACT.email}`}
-            className="group mt-10 inline-flex items-center gap-3 font-code text-xs tracking-widest text-paper/70 transition hover:text-paper"
-          >
-            {CONTACT.email}
-            <span className="transition-transform group-hover:translate-x-1">→</span>
-          </a>
         </div>
 
         {/* środek pusty — tu wisi karta */}

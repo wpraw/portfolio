@@ -1,12 +1,40 @@
 import { useRef } from "react";
-import CodeBackdrop from "../components/CodeBackdrop.jsx";
-import DitheredGradient from "../components/DitheredGradient.jsx";
+import GhostFibers from "../components/GhostFibers.jsx";
 import TechText from "../components/TechText.jsx";
 import { CONTACT } from "../data.js";
 import { useLanguage } from "../i18n.jsx";
 
-/* Strona 3 makiety: pełnoekranowe tło z rozmytym kodem,
-   odręczny nagłówek + PROGRAMISTA, dwa CTA, e-mail w lewym dolnym rogu. */
+/* Strona startowa: pełnoekranowe tło Ghost Fibers (WebGL, React Bits),
+   odręczny nagłówek + PROGRAMISTA, CTA do sekcji. */
+
+/* ustawienia tła — odchudzone (2 warstwy, 44 włókna, rozdzielczość 0.75), płynne na dużych ekranach.
+   Kolor włókna zależy od głębi: bliskie dostają glowColor, dalekie secondaryColor. */
+const FIBERS = {
+  // pierwsza zatwierdzona wersja: bliskie włókna ciemne, zlewały się z tłem
+  calm: {
+    glowColor: "#2a52c9",
+    secondaryColor: "#7ea1e8",
+    layers: 2,
+    threads: 44,
+    particles: 0.3,
+    dpr: 0.75,
+  },
+  // bliskie włókna jaśniejsze i ostrzejsze: odwrócone kolory, płytsza głębia ostrości,
+  // ostrość przesunięta nieco w stronę widza
+  crisp: {
+    glowColor: "#7ea1e8",
+    secondaryColor: "#2a52c9",
+    depthOfField: 0.5,
+    focusDepth: -0.3,
+    thickness: 1.4,
+    glow: 1,
+    brightness: 1.2,
+    layers: 2,
+    threads: 44,
+    particles: 0.3,
+    dpr: 0.75,
+  },
+};
 
 export default function Home({ onNavigate }) {
   const { t } = useLanguage();
@@ -14,19 +42,10 @@ export default function Home({ onNavigate }) {
 
   return (
     <section className="panel relative flex h-screen w-screen shrink-0 items-center overflow-hidden bg-navy">
-      {/* tekstura kodu na całości */}
-      <DitheredGradient className="absolute inset-0 h-full w-full" />
-      {/* maska = 1 − krycie przyciemnienia: kod po lewej przygaszony jak pod dawną nakładką */}
-      <CodeBackdrop
-        lines={46}
-        seed={3}
-        className="absolute inset-0 scale-110 [mask-image:linear-gradient(to_right,rgb(0_0_0/0.15),rgb(0_0_0/0.5)_50%,rgb(0_0_0/0.85))]"
-      />
-
-      {/* TechText na całą sekcję — litery można przeciągać wszędzie, przycina je dopiero
-          krawędź sekcji. Napis układa się w prostokącie h1 poniżej (frameRef). Warstwa leży
-          pod treścią, a treść przepuszcza kursor poza przyciskami. */}
-      <div data-hero aria-hidden className="absolute inset-0 z-[5] text-paper">
+      <div className="absolute inset-0">
+        <GhostFibers {...FIBERS.crisp} />
+      </div>
+      <div data-hero aria-hidden className="absolute inset-0 z-5 text-paper">
         <TechText
           frameRef={nameRef}
           text={CONTACT.name.toUpperCase()}
@@ -35,6 +54,7 @@ export default function Home({ onNavigate }) {
           letterSpacing={-0.025}
           align="left"
           accentColor="#7ea1e8"
+          hoverPadding={40}
         />
       </div>
 
@@ -86,7 +106,7 @@ export default function Home({ onNavigate }) {
       {/* wskazówka scrolla */}
       <div
         data-hero
-        className="absolute bottom-6 right-6 z-10 flex items-center gap-3 font-code text-[10px] uppercase tracking-[0.3em] text-paper/50 md:right-16"
+        className="absolute bottom-6 right-6 z-10 max-[1000px]:bottom-16 flex items-center gap-3 font-code text-[10px] uppercase tracking-[0.3em] text-paper/50 md:right-16"
       >
         {t.home.scroll}
         <span className="scroll-hint block h-px w-14 origin-left bg-paper/50" />
