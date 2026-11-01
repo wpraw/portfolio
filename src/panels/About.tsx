@@ -35,7 +35,7 @@ export default function About() {
   }, [t.about.photo, t.about.strap, t.role, t.location]);
 
   return (
-    <section className="panel relative h-screen w-[220vw] shrink-0 overflow-hidden bg-slate md:w-[150vw]">
+    <section className="panel relative h-screen w-[220vw] shrink-0 overflow-hidden bg-slate md:w-[150vw] touch:h-auto touch:w-full">
       <h2
         data-parallax="0.35"
         className="ghost-title absolute bottom-4 left-[10vw] text-[22vw] font-bold uppercase md:text-[16vw]"
@@ -44,8 +44,9 @@ export default function About() {
       </h2>
 
       {/* identyfikator na smyczy — zwisa spod belki nawigacji; warstwa na całą sekcję,
-          więc kartę przycina dopiero granica sekcji (leży pod kolumnami z treścią) */}
-      <div className="absolute inset-0">
+          więc kartę przycina dopiero granica sekcji (leży pod kolumnami z treścią).
+          Na dotyku sekcje leżą w pionie — karta dostaje własny ekran na górze sekcji. */}
+      <div className="absolute inset-0 touch:bottom-auto touch:h-svh">
         {/* podpowiedź przed kartą w DOM — przeciągnięta karta ją przykrywa */}
         <p className="pointer-events-none absolute inset-x-0 bottom-[20%] flex items-center justify-center gap-2 font-hand text-2xl text-paper/45">
           {t.about.hint}
@@ -66,8 +67,8 @@ export default function About() {
       </div>
 
       {/* siatka nie łapie kursora — tylko kolumny z treścią, reszta trafia do karty */}
-      <div className="pointer-events-none relative z-10 grid h-full grid-cols-[1fr_minmax(0,0.9fr)_1fr]">
-        <div className="pointer-events-auto self-center pt-16 pl-[8vw] pr-6">
+      <div className="pointer-events-none relative z-10 grid h-full grid-cols-[1fr_minmax(0,0.9fr)_1fr] touch:h-auto touch:grid-cols-1 touch:pb-[30vw] touch:md:grid-cols-2 touch:md:pb-[20vw]">
+        <div className="pointer-events-auto self-center pt-16 pl-[8vw] pr-6 touch:pr-[8vw]">
           <p className="mt-8 font-hand text-4xl text-paper/70 md:text-5xl">{t.about.hello}</p>
           <h3 className="text-6xl font-bold uppercase leading-[0.95] tracking-tight text-paper md:text-8xl">
             {firstName}.
@@ -86,10 +87,10 @@ export default function About() {
           </dl>
         </div>
 
-        {/* środek pusty — tu wisi karta */}
-        <div />
+        {/* środek pusty — tu wisi karta (na dotyku: pusty ekran nad treścią) */}
+        <div className="touch:order-first touch:h-svh touch:md:col-span-2" />
 
-        <div className="pointer-events-auto self-center pt-16 pl-6 pr-[8vw]">
+        <div className="pointer-events-auto self-center pt-16 pl-6 pr-[8vw] touch:pl-[8vw]">
           <h3 className="font-hand text-4xl text-paper/90 md:text-5xl">{t.about.approachTitle}</h3>
           <ol className="mt-8 max-w-md divide-y divide-paper/15 border-y border-paper/15">
             {t.about.principles.map((p, i) => (

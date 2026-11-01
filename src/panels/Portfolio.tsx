@@ -10,7 +10,7 @@ export default function Portfolio() {
   return (
     <section
       style={{ "--content-w": contentW } as CSSProperties}
-      className="panel relative flex h-screen w-screen shrink-0 flex-col overflow-hidden bg-olive px-5 pb-6 pt-20 max-[1000px]:pb-16 md:px-16 md:pt-24"
+      className="panel relative flex h-screen w-screen shrink-0 touch:h-svh touch:w-full flex-col overflow-hidden bg-olive px-5 pb-6 pt-20 max-[1000px]:pb-16 md:px-16 md:pt-24"
     >
       <p data-enter="up" className="relative z-10 font-hand text-3xl text-paper/80 md:text-5xl">
         {t.portfolio.heading}

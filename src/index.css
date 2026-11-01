@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* urządzenie dotykowe (telefon, tablet) — strona przewija się normalnie w pionie;
+   z myszką/touchpadem zostaje pozioma podróż. Ten sam warunek jest w App.tsx (TOUCH_QUERY). */
+@custom-variant touch (@media (hover: none) and (pointer: coarse));
+
 @theme {
   --color-ink: #0a0d15;
   --color-navy: #05172f;

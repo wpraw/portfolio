@@ -25,7 +25,7 @@ export default function Resume() {
   const pad = (n: number) => String(n).padStart(2, "0");
 
   return (
-    <section className="panel relative flex h-screen w-[140vw] shrink-0 flex-col overflow-hidden bg-royal max-[1000px]:pb-12 md:w-screen">
+    <section className="panel relative flex h-screen w-[140vw] shrink-0 flex-col overflow-hidden bg-royal max-[1000px]:pb-12 md:w-screen touch:h-auto touch:min-h-svh touch:w-full">
       <div aria-hidden className="blueprint-grid pointer-events-none absolute inset-0" />
 
       {/* bez data-parallax — na blueprincie tytuł stoi w miejscu razem z arkuszem */}
@@ -65,7 +65,7 @@ export default function Resume() {
           ))}
         </div>
 
-        <div className="relative z-10 grid h-full grid-cols-3 gap-6 px-6 pt-24 md:gap-10 md:px-16 md:pt-28">
+        <div className="relative z-10 grid h-full grid-cols-3 gap-6 px-6 pt-24 md:gap-10 md:px-16 md:pt-28 touch:h-auto touch:grid-cols-1 touch:gap-12 touch:pb-12 touch:pl-10 touch:md:grid-cols-3 touch:md:gap-10 touch:md:pl-16">
           <div data-enter="up" className="border-l border-paper/25 pl-5 md:pl-8">
             <p aria-hidden className="dim mb-3 font-code text-[9px] tracking-[0.3em] text-paper/40">DET. A</p>
             <h3 className="font-hand text-3xl text-paper md:text-4xl">{t.resume.skillsTitle}</h3>
