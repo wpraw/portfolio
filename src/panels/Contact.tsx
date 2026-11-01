@@ -6,7 +6,7 @@ export default function Contact() {
   const { t } = useLanguage();
 
   return (
-    <section className="panel relative flex h-screen w-screen shrink-0 items-center justify-center overflow-hidden bg-ink">
+    <section className="panel relative flex h-screen w-screen shrink-0 touch:h-svh touch:w-full items-center justify-center overflow-hidden bg-ink">
       <SideRays
         className="!absolute inset-0"
         rayColor1="#e9e7e1"

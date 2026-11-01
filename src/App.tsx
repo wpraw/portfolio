@@ -17,11 +17,17 @@ gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, CustomEase, useGSAP);
 
 const NAV_EASE = CustomEase.create("navEase", "0.32, 0, 0.12, 1");
 
-/* Pionowy scroll napędza poziomą podróż:
-   - wrapper jest pinowany, tor (track) jedzie w lewo (scrub),
-   - kontenery [data-enter] wjeżdżają do widoku i znikają przy wyjeździe
-     (ScrollTrigger z containerAnimation),
-   - tytuły-duchy [data-parallax] płyną wolniej niż tor. */
+/* Dwa tryby przewijania (gsap.matchMedia):
+   - mysz / touchpad: pionowy scroll napędza poziomą podróż —
+     wrapper jest pinowany, tor (track) jedzie w lewo (scrub),
+     kontenery [data-enter] wjeżdżają do widoku i znikają przy wyjeździe
+     (ScrollTrigger z containerAnimation), tytuły-duchy [data-parallax] płyną wolniej niż tor;
+   - urządzenie dotykowe: sekcje leżą jedna pod drugą i strona przewija się zwyczajnie w pionie
+     (układ przełączają klasy touch: w panelach). */
+
+// ten sam warunek co wariant `touch` w index.css
+const TOUCH_QUERY = "(hover: none) and (pointer: coarse)";
+const MOUSE_QUERY = "not all and (hover: none) and (pointer: coarse)";
 
 type EnterDir = "up" | "down" | "left" | "right";
 
@@ -31,6 +37,8 @@ const ENTER_FROM: Record<EnterDir, { x?: number; y?: number }> = {
   left: { x: -140 },
   right: { x: 140 },
 };
+
+const isTouch = () => window.matchMedia(TOUCH_QUERY).matches;
 
 export default function App() {
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -42,95 +50,150 @@ export default function App() {
     () => {
       const track = trackRef.current!;
       const panels = gsap.utils.toArray<HTMLElement>(".panel");
-      const distance = () => track.scrollWidth - window.innerWidth;
+      const mm = gsap.matchMedia();
 
-      const tween = gsap.to(track, {
-        x: () => -distance(),
-        ease: "none",
-        scrollTrigger: {
-          trigger: wrapperRef.current,
-          pin: true,
-          scrub: 1,
-          end: () => "+=" + distance(),
-          invalidateOnRefresh: true,
-          onUpdate: (self) => {
-            // aktywna sekcja = panel pod środkiem ekranu
-            const x = self.progress * distance() + window.innerWidth / 2;
-            const idx = panels.findIndex(
-              (p) => x >= p.offsetLeft && x < p.offsetLeft + p.offsetWidth
-            );
-            if (idx !== -1) setActive(idx);
-            gsap.set("[data-progress]", { scaleX: self.progress });
-          },
-        },
-      });
-      stRef.current = tween.scrollTrigger ?? null;
+      // --- mysz: pozioma podróż ---
+      mm.add(MOUSE_QUERY, () => {
+        const distance = () => track.scrollWidth - window.innerWidth;
 
-      gsap.utils.toArray<HTMLElement>("[data-enter]").forEach((el) => {
-        const from = ENTER_FROM[el.dataset.enter as EnterDir] ?? ENTER_FROM.up;
-
-        gsap.from(el, {
-          ...from,
-          opacity: 0,
+        const tween = gsap.to(track, {
+          x: () => -distance(),
           ease: "none",
           scrollTrigger: {
-            trigger: el,
-            containerAnimation: tween,
-            start: "left 100%",
-            end: "left 55%",
-            scrub: true,
+            trigger: wrapperRef.current,
+            pin: true,
+            scrub: 1,
+            end: () => "+=" + distance(),
+            invalidateOnRefresh: true,
+            onUpdate: (self) => {
+              // aktywna sekcja = panel pod środkiem ekranu
+              const x = self.progress * distance() + window.innerWidth / 2;
+              const idx = panels.findIndex(
+                (p) => x >= p.offsetLeft && x < p.offsetLeft + p.offsetWidth
+              );
+              if (idx !== -1) setActive(idx);
+              gsap.set("[data-progress]", { scaleX: self.progress });
+            },
           },
         });
+        stRef.current = tween.scrollTrigger ?? null;
 
-        gsap.to(el, {
-          x: from.x ? -from.x * 0.6 : 0,
-          y: from.y ? -from.y * 0.6 : 0,
-          opacity: 0,
-          ease: "none",
-          immediateRender: false,
-          scrollTrigger: {
-            trigger: el,
-            containerAnimation: tween,
-            start: "right 40%",
-            end: "right 0%",
-            scrub: true,
-          },
-        });
-      });
+        gsap.utils.toArray<HTMLElement>("[data-enter]").forEach((el) => {
+          const from = ENTER_FROM[el.dataset.enter as EnterDir] ?? ENTER_FROM.up;
 
-      gsap.utils.toArray<HTMLElement>("[data-parallax]").forEach((el) => {
-        const speed = parseFloat(el.dataset.parallax ?? "0");
-        gsap.fromTo(
-          el,
-          { x: () => window.innerWidth * speed },
-          {
-            x: () => -window.innerWidth * speed,
+          gsap.from(el, {
+            ...from,
+            opacity: 0,
             ease: "none",
             scrollTrigger: {
-              trigger: el.parentElement,
+              trigger: el,
               containerAnimation: tween,
-              start: "left right",
-              end: "right left",
+              start: "left 100%",
+              end: "left 55%",
               scrub: true,
-              invalidateOnRefresh: true,
             },
-          }
-        );
+          });
+
+          gsap.to(el, {
+            x: from.x ? -from.x * 0.6 : 0,
+            y: from.y ? -from.y * 0.6 : 0,
+            opacity: 0,
+            ease: "none",
+            immediateRender: false,
+            scrollTrigger: {
+              trigger: el,
+              containerAnimation: tween,
+              start: "right 40%",
+              end: "right 0%",
+              scrub: true,
+            },
+          });
+        });
+
+        gsap.utils.toArray<HTMLElement>("[data-parallax]").forEach((el) => {
+          const speed = parseFloat(el.dataset.parallax ?? "0");
+          gsap.fromTo(
+            el,
+            { x: () => window.innerWidth * speed },
+            {
+              x: () => -window.innerWidth * speed,
+              ease: "none",
+              scrollTrigger: {
+                trigger: el.parentElement,
+                containerAnimation: tween,
+                start: "left right",
+                end: "right left",
+                scrub: true,
+                invalidateOnRefresh: true,
+              },
+            }
+          );
+        });
+
+        gsap.utils.toArray<HTMLElement>(".lang-bar").forEach((el) => {
+          gsap.from(el, {
+            scaleX: 0,
+            ease: "none",
+            scrollTrigger: {
+              trigger: el,
+              containerAnimation: tween,
+              start: "left 90%",
+              end: "left 45%",
+              scrub: true,
+            },
+          });
+        });
+
+        return () => {
+          stRef.current = null;
+        };
       });
 
-      gsap.utils.toArray<HTMLElement>(".lang-bar").forEach((el) => {
-        gsap.from(el, {
-          scaleX: 0,
-          ease: "none",
-          scrollTrigger: {
-            trigger: el,
-            containerAnimation: tween,
-            start: "left 90%",
-            end: "left 45%",
-            scrub: true,
-          },
+      // --- dotyk: zwykły pionowy scroll ---
+      mm.add(TOUCH_QUERY, () => {
+        panels.forEach((p, i) => {
+          ScrollTrigger.create({
+            trigger: p,
+            start: "top center",
+            end: "bottom center",
+            onToggle: (self) => self.isActive && setActive(i),
+          });
+        });
+
+        ScrollTrigger.create({
+          start: 0,
+          end: "max",
+          onUpdate: (self) => gsap.set("[data-progress]", { scaleX: self.progress }),
+        });
+
+        gsap.utils.toArray<HTMLElement>("[data-enter]").forEach((el) => {
+          gsap.from(el, {
+            y: 60,
+            opacity: 0,
+            ease: "none",
+            scrollTrigger: {
+              trigger: el,
+              start: "top 95%",
+              end: "top 70%",
+              scrub: true,
+            },
+          });
+        });
+
+        gsap.utils.toArray<HTMLElement>(".lang-bar").forEach((el) => {
+          gsap.from(el, {
+            scaleX: 0,
+            ease: "none",
+            scrollTrigger: {
+              trigger: el,
+              start: "top 95%",
+              end: "top 65%",
+              scrub: true,
+            },
+          });
         });
       });
+
       gsap.to(".marquee", {
         xPercent: -50,
         ease: "none",
@@ -153,20 +216,31 @@ export default function App() {
         { scaleX: 0 },
         { scaleX: 1, duration: 1.2, repeat: -1, yoyo: true, ease: "power2.inOut" }
       );
+
+      return () => mm.revert();
     },
     { scope: wrapperRef }
   );
 
   const goTo = (i: number) => {
-    const st = stRef.current;
     const track = trackRef.current;
-    if (!st || !track) return;
+    if (!track) return;
     const panels = track.querySelectorAll<HTMLElement>(".panel");
-    const distance = track.scrollWidth - window.innerWidth;
-    const progress = Math.min(panels[i].offsetLeft / distance, 1);
-    const target = st.start + progress * (st.end - st.start);
+
+    let target: number;
+    if (isTouch()) {
+      target = panels[i].getBoundingClientRect().top + window.scrollY;
+    } else {
+      const st = stRef.current;
+      if (!st) return;
+      const distance = track.scrollWidth - window.innerWidth;
+      const progress = Math.min(panels[i].offsetLeft / distance, 1);
+      target = st.start + progress * (st.end - st.start);
+    }
+
     // czas zależny od dystansu: bliski panel ~0.8 s, drugi koniec ~1.6 s
-    const span = Math.abs(target - window.scrollY) / (st.end - st.start);
+    const total = Math.max(1, ScrollTrigger.maxScroll(window));
+    const span = Math.min(1, Math.abs(target - window.scrollY) / total);
     gsap.to(window, {
       scrollTo: target,
       duration: 0.8 + 0.8 * span,
@@ -179,8 +253,8 @@ export default function App() {
     <div className="noise">
       <Nav active={active} onNavigate={goTo} />
 
-      <div ref={wrapperRef} className="h-screen overflow-hidden">
-        <div ref={trackRef} className="flex h-full w-max">
+      <div ref={wrapperRef} className="h-screen overflow-hidden touch:h-auto touch:overflow-visible">
+        <div ref={trackRef} className="flex h-full w-max touch:h-auto touch:w-full touch:flex-col">
           <Home onNavigate={goTo} />
           <About />
           <Resume />

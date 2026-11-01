@@ -38,7 +38,7 @@ export default function Home({ onNavigate }: { onNavigate: (index: number) => vo
   const nameRef = useRef<HTMLHeadingElement>(null);
 
   return (
-    <section className="panel relative flex h-screen w-screen shrink-0 items-center overflow-hidden bg-navy">
+    <section className="panel relative flex h-screen w-screen shrink-0 touch:h-svh touch:w-full items-center overflow-hidden bg-navy">
       <div className="absolute inset-0">
         <GhostFibers {...FIBERS.crisp} />
       </div>
