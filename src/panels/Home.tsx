@@ -91,7 +91,7 @@ export default function Home({ onNavigate }: { onNavigate: (index: number) => vo
 
       <div
         data-hero
-        className="absolute bottom-6 right-6 z-10 max-[1000px]:bottom-16 flex items-center gap-3 font-code text-[10px] uppercase tracking-[0.3em] text-paper/50 md:right-16"
+        className="absolute bottom-6 right-6 z-10 max-[1000px]:bottom-16 flex touch:hidden items-center gap-3 font-code text-[10px] uppercase tracking-[0.3em] text-paper/50 md:right-16"
       >
         {t.home.scroll}
         <span className="scroll-hint block h-px w-14 origin-left bg-paper/50" />
