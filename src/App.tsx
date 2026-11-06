@@ -12,6 +12,7 @@ import About from "./panels/About";
 import Resume from "./panels/Resume";
 import Portfolio from "./panels/Portfolio";
 import Contact from "./panels/Contact";
+import { isTouch, MOUSE_QUERY, TOUCH_QUERY } from "./touch";
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, CustomEase, useGSAP);
 
@@ -25,10 +26,6 @@ const NAV_EASE = CustomEase.create("navEase", "0.32, 0, 0.12, 1");
    - urządzenie dotykowe: sekcje leżą jedna pod drugą i strona przewija się zwyczajnie w pionie
      (układ przełączają klasy touch: w panelach). */
 
-// ten sam warunek co wariant `touch` w index.css
-const TOUCH_QUERY = "(hover: none) and (pointer: coarse)";
-const MOUSE_QUERY = "not all and (hover: none) and (pointer: coarse)";
-
 type EnterDir = "up" | "down" | "left" | "right";
 
 const ENTER_FROM: Record<EnterDir, { x?: number; y?: number }> = {
@@ -37,8 +34,6 @@ const ENTER_FROM: Record<EnterDir, { x?: number; y?: number }> = {
   left: { x: -140 },
   right: { x: 140 },
 };
-
-const isTouch = () => window.matchMedia(TOUCH_QUERY).matches;
 
 export default function App() {
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -192,6 +187,20 @@ export default function App() {
             },
           });
         });
+
+        // wysokość treści się zmienia (szuflady portfolio, zmiana języka) — pozycje triggerów trzeba przeliczyć;
+        // odczekanie, aż animacja szuflady się skończy, żeby nie przeliczać w każdej klatce
+        let timer = 0;
+        const ro = new ResizeObserver(() => {
+          clearTimeout(timer);
+          timer = window.setTimeout(() => ScrollTrigger.refresh(), 150);
+        });
+        ro.observe(track);
+
+        return () => {
+          ro.disconnect();
+          clearTimeout(timer);
+        };
       });
 
       gsap.to(".marquee", {

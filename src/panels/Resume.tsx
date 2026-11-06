@@ -29,7 +29,7 @@ export default function Resume() {
       <div aria-hidden className="blueprint-grid pointer-events-none absolute inset-0" />
 
       {/* bez data-parallax — na blueprincie tytuł stoi w miejscu razem z arkuszem */}
-      <h2 className="ghost-title absolute -top-4 right-10 text-[20vw] font-bold uppercase md:text-[13vw]">
+      <h2 className="ghost-title absolute -top-4 right-10 touch:top-20 text-[20vw] font-bold uppercase md:text-[13vw]">
         {t.sections.find((s) => s.id === "resume")?.label}
       </h2>
 
@@ -65,7 +65,7 @@ export default function Resume() {
           ))}
         </div>
 
-        <div className="relative z-10 grid h-full grid-cols-3 gap-6 px-6 pt-24 md:gap-10 md:px-16 md:pt-28 touch:h-auto touch:grid-cols-1 touch:gap-12 touch:pb-12 touch:pl-10 touch:md:grid-cols-3 touch:md:gap-10 touch:md:pl-16">
+        <div className="relative z-10 grid h-full grid-cols-3 gap-6 px-6 pt-24 md:gap-10 md:px-16 md:pt-28 touch:h-auto touch:grid-cols-1 touch:gap-12 touch:pt-[calc(5rem+17.5vw)] touch:pb-12 touch:pl-10 touch:md:grid-cols-3 touch:md:gap-10 touch:md:pt-[calc(5rem+11.5vw)] touch:md:pl-16">
           <div data-enter="up" className="border-l border-paper/25 pl-5 md:pl-8">
             <p aria-hidden className="dim mb-3 font-code text-[9px] tracking-[0.3em] text-paper/40">DET. A</p>
             <h3 className="font-hand text-3xl text-paper md:text-4xl">{t.resume.skillsTitle}</h3>

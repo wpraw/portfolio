@@ -68,7 +68,7 @@ export default function About() {
 
       {/* siatka nie łapie kursora — tylko kolumny z treścią, reszta trafia do karty */}
       <div className="pointer-events-none relative z-10 grid h-full grid-cols-[1fr_minmax(0,0.9fr)_1fr] touch:h-auto touch:grid-cols-1 touch:pb-[30vw] touch:md:grid-cols-2 touch:md:pb-[20vw]">
-        <div className="pointer-events-auto self-center pt-16 pl-[8vw] pr-6 touch:pr-[8vw]">
+        <div className="pointer-events-auto self-center pt-16 pl-[8vw] pr-6 touch:pr-[8vw] touch:md:self-start">
           <p className="mt-8 font-hand text-4xl text-paper/70 md:text-5xl">{t.about.hello}</p>
           <h3 className="text-6xl font-bold uppercase leading-[0.95] tracking-tight text-paper md:text-8xl">
             {firstName}.
@@ -90,7 +90,7 @@ export default function About() {
         {/* środek pusty — tu wisi karta (na dotyku: pusty ekran nad treścią) */}
         <div className="touch:order-first touch:h-svh touch:md:col-span-2" />
 
-        <div className="pointer-events-auto self-center pt-16 pl-6 pr-[8vw] touch:pl-[8vw]">
+        <div className="pointer-events-auto self-center pt-16 pl-6 pr-[8vw] touch:pl-[8vw] touch:md:self-start touch:md:pt-60 touch:md:pl-6">
           <h3 className="font-hand text-4xl text-paper/90 md:text-5xl">{t.about.approachTitle}</h3>
           <ol className="mt-8 max-w-md divide-y divide-paper/15 border-y border-paper/15">
             {t.about.principles.map((p, i) => (
