@@ -36,7 +36,7 @@ const ENTER_FROM: Record<EnterDir, { x?: number; y?: number }> = {
 };
 
 export default function App() {
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const stRef = useRef<ScrollTrigger | null>(null);
   const [active, setActive] = useState(0);
@@ -226,24 +226,37 @@ export default function App() {
         { scaleX: 1, duration: 1.2, repeat: -1, yoyo: true, ease: "power2.inOut" }
       );
 
-      return () => mm.revert();
+      // wejście z adresem typu /#portfolio — jedziemy do sekcji jak z nawigacji
+      // (wrapper ma overflow-clip, więc przeglądarka nie przewinie poziomego toru sama)
+      const hashId = window.location.hash.slice(1);
+      let raf = 0;
+      if (panels.some((p) => p.id === hashId)) {
+        raf = requestAnimationFrame(() => goTo(hashId));
+      }
+
+      return () => {
+        cancelAnimationFrame(raf);
+        mm.revert();
+      };
     },
     { scope: wrapperRef }
   );
 
-  const goTo = (i: number) => {
+  /** przewija do panelu o danym id (id sekcji z data.ts) */
+  function goTo(id: string) {
     const track = trackRef.current;
     if (!track) return;
-    const panels = track.querySelectorAll<HTMLElement>(".panel");
+    const panel = Array.from(track.querySelectorAll<HTMLElement>(".panel")).find((p) => p.id === id);
+    if (!panel) return;
 
     let target: number;
     if (isTouch()) {
-      target = panels[i].getBoundingClientRect().top + window.scrollY;
+      target = panel.getBoundingClientRect().top + window.scrollY;
     } else {
       const st = stRef.current;
       if (!st) return;
       const distance = track.scrollWidth - window.innerWidth;
-      const progress = Math.min(panels[i].offsetLeft / distance, 1);
+      const progress = Math.min(panel.offsetLeft / distance, 1);
       target = st.start + progress * (st.end - st.start);
     }
 
@@ -256,13 +269,13 @@ export default function App() {
       ease: NAV_EASE,
       overwrite: "auto",
     });
-  };
+  }
 
   return (
     <div className="noise">
       <Nav active={active} onNavigate={goTo} />
 
-      <div ref={wrapperRef} className="h-screen overflow-hidden touch:h-auto touch:overflow-visible">
+      <main ref={wrapperRef} className="h-screen overflow-clip touch:h-auto touch:overflow-visible">
         <div ref={trackRef} className="flex h-full w-max touch:h-auto touch:w-full touch:flex-col">
           <Home onNavigate={goTo} />
           <About />
@@ -270,7 +283,7 @@ export default function App() {
           <Portfolio />
           <Contact />
         </div>
-      </div>
+      </main>
 
       <Footer />
 

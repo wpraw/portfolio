@@ -33,12 +33,12 @@ const FIBERS = {
   },
 };
 
-export default function Home({ onNavigate }: { onNavigate: (index: number) => void }) {
+export default function Home({ onNavigate }: { onNavigate: (id: string) => void }) {
   const { t } = useLanguage();
   const nameRef = useRef<HTMLHeadingElement>(null);
 
   return (
-    <section className="panel relative flex h-screen w-screen shrink-0 touch:h-svh touch:w-full items-center overflow-hidden bg-navy">
+    <section id="home" className="panel relative flex h-screen w-screen shrink-0 touch:h-svh touch:w-full items-center overflow-hidden bg-navy">
       <div className="absolute inset-0">
         <GhostFibers {...FIBERS.crisp} />
       </div>
@@ -58,7 +58,9 @@ export default function Home({ onNavigate }: { onNavigate: (index: number) => vo
       <div className="pointer-events-none relative z-10 px-6 pt-16 md:px-16 lg:px-24">
         {/* miejsce na napis TechText — sztywne wymiary, bo komponent dopasowuje do nich rozmiar fontu */}
         <h1 ref={nameRef} className="mt-2 h-28 w-[79vw] md:h-40 md:w-[63vw] lg:h-48">
-          <span className="sr-only">{CONTACT.name}</span>
+          <span className="sr-only">
+            {CONTACT.name} – {t.tagline}
+          </span>
         </h1>
         <p
           data-hero
@@ -68,24 +70,36 @@ export default function Home({ onNavigate }: { onNavigate: (index: number) => vo
         </p>
 
         <div data-hero className="pointer-events-auto mt-10 flex flex-wrap gap-4">
-          <button
-            onClick={() => onNavigate(2)}
+          <a
+            href="#resume"
+            onClick={(e) => {
+              e.preventDefault();
+              onNavigate("resume");
+            }}
             className="border border-paper/60 px-7 py-3 font-code text-xs uppercase tracking-[0.2em] text-paper transition hover:translate-x-1 hover:-translate-y-1 hover:shadow-[6px_6px_0_0_var(--color-paper)]"
           >
             {t.home.ctaResume}
-          </button>
-          <button
-            onClick={() => onNavigate(3)}
+          </a>
+          <a
+            href="#portfolio"
+            onClick={(e) => {
+              e.preventDefault();
+              onNavigate("portfolio");
+            }}
             className="border border-paper/60 px-7 py-3 font-code text-xs uppercase tracking-[0.2em] text-paper transition hover:translate-x-1 hover:-translate-y-1 hover:shadow-[6px_6px_0_0_var(--color-paper)]"
           >
             {t.home.ctaPortfolio}
-          </button>
-          <button
-            onClick={() => onNavigate(4)}
+          </a>
+          <a
+            href="#contact"
+            onClick={(e) => {
+              e.preventDefault();
+              onNavigate("contact");
+            }}
             className="border border-paper/60 bg-paper px-7 py-3 font-code text-xs uppercase tracking-[0.2em] text-ink transition hover:translate-x-1 hover:-translate-y-1 hover:shadow-[6px_6px_0_0_var(--color-royal)]"
           >
             {t.home.ctaContact}
-          </button>
+          </a>
         </div>
       </div>
 

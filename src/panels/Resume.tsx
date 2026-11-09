@@ -25,7 +25,7 @@ export default function Resume() {
   const pad = (n: number) => String(n).padStart(2, "0");
 
   return (
-    <section className="panel relative flex h-screen w-[140vw] shrink-0 flex-col overflow-hidden bg-royal max-[1000px]:pb-12 md:w-screen touch:h-auto touch:min-h-svh touch:w-full">
+    <section id="resume" className="panel relative flex h-screen w-[140vw] shrink-0 flex-col overflow-hidden bg-royal max-[1000px]:pb-12 md:w-screen touch:h-auto touch:min-h-svh touch:w-full">
       <div aria-hidden className="blueprint-grid pointer-events-none absolute inset-0" />
 
       {/* bez data-parallax — na blueprincie tytuł stoi w miejscu razem z arkuszem */}
@@ -162,7 +162,8 @@ export default function Resume() {
           ].map(([label, value]) => (
             <div key={label} className="flex flex-col justify-center px-4">
               <dt className="text-[9px] tracking-[0.25em] text-paper/40">{label}</dt>
-              <dd className="text-[11px] tracking-widest text-paper/80">{value}</dd>
+              {/* rok z buildu (prerender) może różnić się od roku w przeglądarce */}
+              <dd suppressHydrationWarning className="text-[11px] tracking-widest text-paper/80">{value}</dd>
             </div>
           ))}
         </dl>

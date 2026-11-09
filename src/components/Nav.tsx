@@ -5,7 +5,7 @@ import SocialLinks from "./SocialLinks";
 
 interface NavProps {
   active: number;
-  onNavigate: (index: number) => void;
+  onNavigate: (id: string) => void;
 }
 
 export default function Nav({ active, onNavigate }: NavProps) {
@@ -18,9 +18,14 @@ export default function Nav({ active, onNavigate }: NavProps) {
     >
       <nav className="flex items-center gap-5 max-md:w-full max-md:justify-between max-md:gap-2 md:gap-8">
         {t.sections.map((s, i) => (
-          <button
+          <a
             key={s.id}
-            onClick={() => onNavigate(i)}
+            href={`#${s.id}`}
+            aria-current={active === i ? "true" : undefined}
+            onClick={(e) => {
+              e.preventDefault();
+              onNavigate(s.id);
+            }}
             className={`whitespace-nowrap font-code text-[10px] uppercase tracking-[0.12em] transition-colors max-[359px]:tracking-[0.05em] min-[400px]:text-[11px] min-[400px]:tracking-[0.16em] md:text-xs md:tracking-[0.25em] ${
               active === i ? "text-paper" : "text-paper/50 hover:text-paper"
             }`}
@@ -31,7 +36,7 @@ export default function Nav({ active, onNavigate }: NavProps) {
                 active === i ? "scale-x-100" : "scale-x-0"
               }`}
             />
-          </button>
+          </a>
         ))}
       </nav>
       {/* do 1000px telefon, ikony i język są w stopce (Footer) */}

@@ -30,8 +30,16 @@ export interface Project extends TitledItem {
 }
 
 export interface Content {
-  meta: { title: string };
+  meta: {
+    title: string;
+    /** meta description i opis w danych strukturalnych — ok. 150 znaków */
+    description: string;
+    /** og:locale, np. pl_PL */
+    ogLocale: string;
+  };
   role: string;
+  /** krótko, czym się zajmuję — w H1 (dla czytników i wyszukiwarek) i w JSON-LD */
+  tagline: string;
   location: string;
   sections: { id: string; label: string }[];
   langSwitch: string;
@@ -112,8 +120,14 @@ export const MARQUEE = [
 
 export const CONTENT: Record<Lang, Content> = {
   pl: {
-    meta: { title: "Wojciech Prawdzik - Programista" },
+    meta: {
+      title: "Wojciech Prawdzik – programista stron i aplikacji webowych, Gdańsk",
+      description:
+        "Programista z Gdańska: szybkie strony firmowe, sklepy i aplikacje webowe w Next.js i React, przygotowane pod SEO. Trójmiasto i zdalnie w całej Polsce.",
+      ogLocale: "pl_PL",
+    },
     role: "INŻYNIER OPROGRAMOWANIA",
+    tagline: "programista stron i aplikacji webowych (Next.js, React), Gdańsk",
     location: "Gdańsk, Polska",
     sections: [
       { id: "home", label: "Start" },
@@ -270,8 +284,14 @@ export const CONTENT: Record<Lang, Content> = {
   },
 
   en: {
-    meta: { title: "Wojciech Prawdzik - Developer" },
+    meta: {
+      title: "Wojciech Prawdzik – Freelance Web Developer (Next.js, React), Gdańsk",
+      description:
+        "Web developer from Gdańsk, Poland: fast business websites, online stores and web apps built with Next.js and React, ready for SEO. Working remotely worldwide.",
+      ogLocale: "en_GB",
+    },
     role: "SOFTWARE ENGINEER",
+    tagline: "freelance web developer (Next.js, React) based in Gdańsk, Poland",
     location: "Gdańsk, Poland",
     sections: [
       { id: "home", label: "Home" },

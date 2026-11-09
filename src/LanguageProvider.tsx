@@ -1,46 +1,39 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { CONTENT, type Lang } from "./data";
-import { LANGS, LanguageContext } from "./i18n";
+import { langFromPath, LanguageContext, pathFor, STORAGE_KEY } from "./i18n";
 
-/* Język strony: zapisany wybór użytkownika → preferencje przeglądarki
-   (navigator.languages) → angielski jako domyślny dla reszty świata. */
+/* Język wynika z adresu (/ = PL, /en/ = EN), więc HTML z prerenderu i pierwszy render
+   w przeglądarce są identyczne. Przełącznik zmienia adres (pushState) i zapamiętuje wybór —
+   przy kolejnej wizycie main.tsx przekieruje na zapisany język.
+   Celowo bez przekierowań po navigator.languages: Googlebot ma en-US
+   i nigdy nie zobaczyłby polskiej wersji. */
 
-const DEFAULT_LANG: Lang = "en";
-const STORAGE_KEY = "lang";
-
-const isLang = (value: unknown): value is Lang => LANGS.includes(value as Lang);
-
-function detectLanguage(): Lang {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (isLang(saved)) return saved;
-  } catch {
-    // localStorage bywa niedostępny (tryb prywatny, zablokowane ciasteczka) — wtedy decyduje przeglądarka
-  }
-
-  const prefs = navigator.languages?.length ? navigator.languages : [navigator.language];
-  for (const tag of prefs) {
-    const base = tag?.toLowerCase().split("-")[0]; // "pl-PL" → "pl"
-    if (isLang(base)) return base;
-  }
-  return DEFAULT_LANG;
-}
-
-export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>(detectLanguage);
+export function LanguageProvider({ initialLang, children }: { initialLang: Lang; children: ReactNode }) {
+  const [lang, setLangState] = useState<Lang>(initialLang);
 
   useEffect(() => {
+    const { meta } = CONTENT[lang];
     document.documentElement.lang = lang;
-    document.title = CONTENT[lang].meta.title;
+    document.title = meta.title;
+    document.querySelector('meta[name="description"]')?.setAttribute("content", meta.description);
   }, [lang]);
 
+  // Wstecz / Dalej między / i /en/
+  useEffect(() => {
+    const onPop = () => setLangState(langFromPath(window.location.pathname));
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
   const setLang = (next: Lang) => {
-    setLangState(next);
     try {
       localStorage.setItem(STORAGE_KEY, next);
     } catch {
       // bez localStorage wybór działa tylko do przeładowania strony
     }
+    if (next === lang) return;
+    setLangState(next);
+    window.history.pushState(null, "", pathFor(next));
   };
 
   return (

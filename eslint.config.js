@@ -6,7 +6,7 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default defineConfig([
-  globalIgnores(["dist"]),
+  globalIgnores(["dist", "dist-ssr"]),
   {
     files: ["**/*.{ts,tsx}"],
     extends: [
@@ -19,5 +19,10 @@ export default defineConfig([
       ecmaVersion: 2022,
       globals: globals.browser,
     },
+  },
+  {
+    // wejście buildu SSR (prerender) — nie przechodzi przez Fast Refresh
+    files: ["src/entry-server.tsx"],
+    rules: { "react-refresh/only-export-components": "off" },
   },
 ]);
