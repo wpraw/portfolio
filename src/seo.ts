@@ -66,6 +66,19 @@ export function buildJsonLd(lang: Lang, site: string) {
         ],
         knowsLanguage: ["pl", "en"],
         sameAs: [CONTACT.github, CONTACT.linkedin],
+        hasOfferCatalog: {
+          "@type": "OfferCatalog",
+          name: t.services.offerTitle,
+          itemListElement: t.services.items.map((item) => ({
+            "@type": "Offer",
+            itemOffered: {
+              "@type": "Service",
+              name: item.title,
+              description: item.desc,
+              provider: { "@id": person },
+            },
+          })),
+        },
       },
       {
         "@type": "WebSite",
@@ -101,6 +114,17 @@ export function buildJsonLd(lang: Lang, site: string) {
             keywords: p.tags.join(", "),
             creator: { "@id": person },
           },
+        })),
+      },
+      {
+        "@type": "FAQPage",
+        "@id": `${url}#faq`,
+        inLanguage: lang,
+        isPartOf: { "@id": `${url}#webpage` },
+        mainEntity: t.services.faq.map((f) => ({
+          "@type": "Question",
+          name: f.q,
+          acceptedAnswer: { "@type": "Answer", text: f.a },
         })),
       },
     ],
@@ -206,9 +230,24 @@ export function buildLlmsTxt(site: string) {
       .join("\n");
     const experience = t.experience.map((e) => `- ${e.period} — ${e.title}, ${e.place}. ${e.desc}`).join("\n");
     const values = t.clientValue.map((v) => `- ${v.title}: ${v.desc}`).join("\n");
+    const services = t.services.items.map((v) => `- ${v.title}: ${v.desc}`).join("\n");
+    const process = t.services.process.map((v, i) => `${i + 1}. ${v.title}: ${v.desc}`).join("\n");
+    const faq = t.services.faq.map((f) => `**${f.q}**\n${f.a}`).join("\n\n");
 
     return `## ${lang === "pl" ? "Po polsku" : "In English"} (${pageUrl(site, lang)})
 
+${t.services.intro}
+
+### ${t.services.offerTitle}
+${services}
+
+### ${t.services.processTitle}
+${process}
+
+### ${t.services.faqTitle}
+${faq}
+
+### ${t.about.heading}
 ${t.about.bio}
 
 ### ${t.resume.clientTitle}

@@ -26,9 +26,10 @@ export default function Nav({ active, onNavigate }: NavProps) {
               e.preventDefault();
               onNavigate(s.id);
             }}
+            // na wąskich ekranach 6 pozycji się nie mieści — "Start" znika (na górę wraca się scrollem)
             className={`whitespace-nowrap font-code text-[10px] uppercase tracking-[0.12em] transition-colors max-[359px]:tracking-[0.05em] min-[400px]:text-[11px] min-[400px]:tracking-[0.16em] md:text-xs md:tracking-[0.25em] ${
-              active === i ? "text-paper" : "text-paper/50 hover:text-paper"
-            }`}
+              s.id === "home" ? "max-md:hidden" : ""
+            } ${active === i ? "text-paper" : "text-paper/50 hover:text-paper"}`}
           >
             {s.label}
             <span

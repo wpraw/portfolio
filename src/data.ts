@@ -63,6 +63,18 @@ export interface Content {
     titleBlock: { drawn: string; sheet: string; scale: string; rev: string };
   };
   portfolio: { heading: string; more: string; clients: string };
+  /** oferta dla klientów freelance — te same treści trafiają do JSON-LD (usługi, FAQPage) i llms.txt */
+  services: {
+    heading: string;
+    intro: string;
+    cta: string;
+    offerTitle: string;
+    items: TitledItem[];
+    processTitle: string;
+    process: TitledItem[];
+    faqTitle: string;
+    faq: { q: string; a: string }[];
+  };
   contact: { headline: string; sub: string };
   skills: string[];
   languages: { name: string; level: string; pct: number }[];
@@ -134,6 +146,7 @@ export const CONTENT: Record<Lang, Content> = {
       { id: "about", label: "O mnie" },
       { id: "resume", label: "Życiorys" },
       { id: "portfolio", label: "Portfolio" },
+      { id: "services", label: "Usługi" },
       { id: "contact", label: "Kontakt" },
     ],
     langSwitch: "Zmień język",
@@ -188,6 +201,79 @@ export const CONTENT: Record<Lang, Content> = {
       heading: "Rzeczy, które zbudowałem",
       more: "zobacz więcej",
       clients: "Klienci",
+    },
+    services: {
+      heading: "Jak mogę Ci pomóc",
+      intro:
+        "Przyjmuję zlecenia freelance: tworzę strony internetowe, sklepy i aplikacje webowe dla firm, gabinetów i startupów z Gdańska, Gdyni, Sopotu i całej Polski (zdalnie). Prowadzę projekt od pierwszej rozmowy, przez realizację, po wdrożenie i opiekę.",
+      cta: "Zapytaj o wycenę",
+      offerTitle: "Co mogę dla Ciebie zrobić",
+      items: [
+        {
+          title: "Strony firmowe i wizytówki",
+          desc: "Szybka, nowoczesna strona dla firmy, gabinetu lub usługodawcy w Next.js. Responsywna, łatwa w edycji i gotowa pod Google od pierwszego dnia.",
+        },
+        {
+          title: "Sklepy internetowe",
+          desc: "Sklepy i katalogi produktów, także headless z CMS: koszyk, płatności, logowanie klientów i szybkie ładowanie zdjęć.",
+        },
+        {
+          title: "Aplikacje webowe i panele",
+          desc: "Systemy rezerwacji, panele klienta, portale i narzędzia wewnętrzne. Frontend i backend (Next.js, NestJS, Postgres), także w wersji na Androida i iOS.",
+        },
+        {
+          title: "SEO techniczne i wydajność",
+          desc: "Metadane, dane strukturalne, sitemapa i Core Web Vitals. Poprawiam też istniejące strony, które są wolne albo niewidoczne w Google i w ChatGPT.",
+        },
+        {
+          title: "Integracje AI",
+          desc: "Chatboty odpowiadające na podstawie wiedzy firmy (RAG), automatyzacja powtarzalnych procesów i asystenci AI wpięci w stronę lub system.",
+        },
+        {
+          title: "Opieka i rozwój",
+          desc: "Przejmuję istniejące projekty w React i Next.js: naprawiam błędy, dodaję funkcje i dbam o aktualizacje.",
+        },
+      ],
+      processTitle: "Jak wygląda współpraca",
+      process: [
+        { title: "Rozmowa", desc: "Bezpłatnie omawiamy cel, odbiorców i budżet." },
+        { title: "Wycena", desc: "Zakres, termin i stała cena na piśmie." },
+        { title: "Realizacja", desc: "Pracuję etapami, postępy widzisz na bieżąco na wersji testowej." },
+        { title: "Wdrożenie", desc: "Publikacja, domena, analityka i zgłoszenie strony do Google." },
+        { title: "Opieka", desc: "Poprawki, rozwój i wsparcie po starcie." },
+      ],
+      faqTitle: "Najczęstsze pytania",
+      // TODO: kwoty i terminy to propozycja — sprawdź, zanim strona trafi do sieci
+      faq: [
+        {
+          q: "Ile kosztuje strona internetowa?",
+          a: "Prosta strona firmowa to zwykle od 3 000 zł, rozbudowany serwis lub sklep od 8 000 zł. Po krótkiej rozmowie dostajesz stałą wycenę, bez ukrytych kosztów.",
+        },
+        {
+          q: "Ile trwa zrobienie strony?",
+          a: "Strona firmowa zwykle 2–4 tygodnie, sklep lub aplikacja od 6 tygodni, zależnie od zakresu. Termin ustalamy przed startem prac.",
+        },
+        {
+          q: "Czy zajmiesz się domeną, hostingiem i wdrożeniem?",
+          a: "Tak. Pomagam wybrać domenę i hosting (np. Vercel, Netlify), wdrażam stronę, podpinam analitykę i Google Search Console.",
+        },
+        {
+          q: "Czy strona będzie widoczna w Google i w ChatGPT?",
+          a: "Każdą stronę przygotowuję pod SEO: szybkie ładowanie, metadane, dane strukturalne (JSON-LD) i sitemapa. Treść jest w HTML, więc czytają ją też wyszukiwarki AI, takie jak ChatGPT czy Perplexity.",
+        },
+        {
+          q: "Czy będę mógł sam edytować treści?",
+          a: "Tak, jeśli tego potrzebujesz. Podpinam wygodny panel (headless CMS), w którym zmienisz teksty i zdjęcia bez programisty.",
+        },
+        {
+          q: "Czy pracujesz zdalnie?",
+          a: "Tak. Mieszkam w Gdańsku i chętnie spotkam się w Trójmieście, a z klientami z reszty Polski i z zagranicy pracuję zdalnie, po polsku lub angielsku.",
+        },
+        {
+          q: "Czy przejmiesz istniejącą stronę lub aplikację?",
+          a: "Tak. Robię przegląd kodu, naprawiam błędy i rozwijam projekty w React, Next.js i Node.js. Mogę też przenieść starą stronę na szybszy Next.js.",
+        },
+      ],
     },
     contact: {
       headline: "Masz pomysł na projekt?",
@@ -298,6 +384,7 @@ export const CONTENT: Record<Lang, Content> = {
       { id: "about", label: "About" },
       { id: "resume", label: "Resume" },
       { id: "portfolio", label: "Portfolio" },
+      { id: "services", label: "Services" },
       { id: "contact", label: "Contact" },
     ],
     langSwitch: "Change language",
@@ -352,6 +439,79 @@ export const CONTENT: Record<Lang, Content> = {
       heading: "Things I've built",
       more: "see more",
       clients: "Clients",
+    },
+    services: {
+      heading: "How I can help",
+      intro:
+        "I take on freelance projects: websites, online stores and web apps for businesses, clinics and startups in Gdańsk, the Tri-City area and remotely across Poland and Europe. I lead the project from the first call through development to launch and maintenance.",
+      cta: "Ask for a quote",
+      offerTitle: "What I can build for you",
+      items: [
+        {
+          title: "Business websites",
+          desc: "A fast, modern website for your company, clinic or service built with Next.js. Responsive, easy to edit and ready for Google from day one.",
+        },
+        {
+          title: "Online stores",
+          desc: "Stores and product catalogs, including headless commerce with a CMS: cart, payments, customer accounts and fast-loading images.",
+        },
+        {
+          title: "Web apps & dashboards",
+          desc: "Booking systems, client portals, dashboards and internal tools. Frontend and backend (Next.js, NestJS, Postgres), with Android and iOS versions if needed.",
+        },
+        {
+          title: "Technical SEO & performance",
+          desc: "Metadata, structured data, sitemaps and Core Web Vitals. I also fix existing sites that are slow or invisible in Google and ChatGPT.",
+        },
+        {
+          title: "AI integrations",
+          desc: "Chatbots that answer from your company's knowledge (RAG), automation of repetitive processes and AI assistants built into your site or system.",
+        },
+        {
+          title: "Maintenance & development",
+          desc: "I take over existing React and Next.js projects: fix bugs, add features and keep everything up to date.",
+        },
+      ],
+      processTitle: "How we'll work together",
+      process: [
+        { title: "Call", desc: "A free chat about your goals, audience and budget." },
+        { title: "Quote", desc: "Scope, deadline and a fixed price in writing." },
+        { title: "Build", desc: "I work in stages and you follow progress on a staging version." },
+        { title: "Launch", desc: "Deployment, domain, analytics and submitting the site to Google." },
+        { title: "Support", desc: "Fixes, new features and help after launch." },
+      ],
+      faqTitle: "Frequently asked questions",
+      // TODO: kwoty i terminy to propozycja — sprawdź, zanim strona trafi do sieci
+      faq: [
+        {
+          q: "How much does a website cost?",
+          a: "A simple business website usually starts at PLN 3,000 (about €700), a larger site or online store at PLN 8,000 (about €1,900). After a short call you get a fixed quote with no hidden costs.",
+        },
+        {
+          q: "How long does it take to build a website?",
+          a: "A business website usually takes 2–4 weeks, a store or web app 6 weeks or more depending on scope. We agree on the deadline before work starts.",
+        },
+        {
+          q: "Can you handle the domain, hosting and deployment?",
+          a: "Yes. I help you choose a domain and hosting (e.g. Vercel, Netlify), deploy the site and set up analytics and Google Search Console.",
+        },
+        {
+          q: "Will my site show up in Google and ChatGPT?",
+          a: "Every site I build is ready for SEO: fast loading, metadata, structured data (JSON-LD) and a sitemap. The content is in plain HTML, so AI search engines like ChatGPT and Perplexity can read it too.",
+        },
+        {
+          q: "Will I be able to edit the content myself?",
+          a: "Yes, if you need to. I connect an easy-to-use admin panel (headless CMS) where you can change text and images without a developer.",
+        },
+        {
+          q: "Do you work remotely?",
+          a: "Yes. I'm based in Gdańsk and happy to meet in the Tri-City area, and I work remotely with clients from the rest of Poland and abroad, in English or Polish.",
+        },
+        {
+          q: "Can you take over an existing website or app?",
+          a: "Yes. I review the code, fix bugs and develop projects built with React, Next.js and Node.js. I can also migrate an old site to a faster Next.js stack.",
+        },
+      ],
     },
     contact: {
       headline: "Got a project in mind?",

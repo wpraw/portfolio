@@ -11,6 +11,7 @@ import Home from "./panels/Home";
 import About from "./panels/About";
 import Resume from "./panels/Resume";
 import Portfolio from "./panels/Portfolio";
+import Services from "./panels/Services";
 import Contact from "./panels/Contact";
 import { isTouch, MOUSE_QUERY, TOUCH_QUERY } from "./touch";
 
@@ -281,6 +282,7 @@ export default function App() {
           <About />
           <Resume />
           <Portfolio />
+          <Services onNavigate={goTo} />
           <Contact />
         </div>
       </main>
