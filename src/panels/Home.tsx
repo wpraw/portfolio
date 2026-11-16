@@ -4,8 +4,7 @@ import TechText from "../components/TechText";
 import { CONTACT } from "../data";
 import { useLanguage } from "../i18n";
 
-/* ustawienia tła — odchudzone (2 warstwy, 44 włókna, rozdzielczość 0.75), płynne na dużych ekranach.
-   Kolor włókna zależy od głębi: bliskie dostają glowColor, dalekie secondaryColor. */
+/* Kolor włókna zależy od głębi: bliskie dostają glowColor, dalekie secondaryColor. */
 const FIBERS = {
   // nieużywany wariant: bliskie włókna ciemne, zlewają się z tłem
   calm: {

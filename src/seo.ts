@@ -2,10 +2,6 @@ import { CONTACT, CONTENT, PHOTO, type Lang } from "./data";
 import { LANGS, pathFor } from "./i18n";
 import { OG_IMAGE } from "./site";
 
-/* Wszystko, co trafia do <head> i plików dla crawlerów, liczone z data.ts —
-   jedno źródło treści dla strony, Google i asystentów AI (ChatGPT, Perplexity, Claude).
-   Używane tylko w buildzie (scripts/prerender.mjs przez entry-server). */
-
 const esc = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
@@ -131,7 +127,6 @@ export function buildJsonLd(lang: Lang, site: string) {
   };
 }
 
-/** tagi do <head> danej wersji językowej */
 export function buildHead(lang: Lang, site: string) {
   const t = CONTENT[lang];
   const url = pageUrl(site, lang);
@@ -148,7 +143,6 @@ export function buildHead(lang: Lang, site: string) {
     `<meta name="theme-color" content="#05172f" />`,
     `<link rel="canonical" href="${url}" />`,
     ...LANGS.map((l) => `<link rel="alternate" hreflang="${l}" href="${pageUrl(site, l)}" />`),
-    // dla pozostałych języków świata — wersja angielska
     `<link rel="alternate" hreflang="x-default" href="${pageUrl(site, "en")}" />`,
     `<meta property="og:type" content="profile" />`,
     `<meta property="og:site_name" content="${esc(CONTACT.name)}" />`,
@@ -190,9 +184,7 @@ ${urls}
 `;
 }
 
-/* Boty wyszukiwarek AI wpuszczone jawnie: OAI-SearchBot / ChatGPT-User (wyszukiwanie w ChatGPT),
-   GPTBot (trening OpenAI), PerplexityBot, ClaudeBot / Claude-SearchBot, Google-Extended (Gemini).
-   Bot z własną grupą ignoruje grupę "*", więc każda grupa ma swoje Allow. */
+/* Bot z własną grupą ignoruje grupę "*", więc każda grupa ma swoje Allow. */
 const AI_BOTS = [
   "OAI-SearchBot",
   "ChatGPT-User",
@@ -218,7 +210,6 @@ Sitemap: ${site}/sitemap.xml
 `;
 }
 
-/* llms.txt (llmstxt.org) — streszczenie strony w markdownie dla modeli językowych. */
 export function buildLlmsTxt(site: string) {
   const pl = CONTENT.pl;
   const en = CONTENT.en;

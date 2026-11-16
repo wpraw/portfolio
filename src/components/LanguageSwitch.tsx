@@ -1,8 +1,5 @@
 import { LANGS, pathFor, useLanguage } from "../i18n";
 
-/* Prawdziwe linki do /, /en/ (dla wyszukiwarek i otwierania w nowej karcie),
-   zwykły klik przełącza język bez przeładowania. */
-
 export default function LanguageSwitch() {
   const { lang, setLang, t } = useLanguage();
 

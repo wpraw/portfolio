@@ -153,7 +153,6 @@ function drawBack({ name, role, location, email }: Pick<CardFacesInput, "name" |
   ctx.fillText(location, left, 1000);
   ctx.globalAlpha = 1;
 
-  // "kod kreskowy" — deterministyczny, czysto dekoracyjny
   let x = left;
   let seed = 7;
   while (x < W - left) {

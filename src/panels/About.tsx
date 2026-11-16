@@ -4,9 +4,6 @@ import { buildCardFaces, type CardFaces } from "../components/cardFaces";
 import { CONTACT, PHOTO } from "../data";
 import { useLanguage } from "../i18n";
 
-/* Po lewej bio i fakty, w środku identyfikator na smyczy (Lanyard — można go złapać,
-   rzucić, kliknąć, żeby się odwrócił), po prawej "Jak pracuję". */
-
 // Lanyard ciągnie three.js (~550 KB) — osobny plik, ładowany w tle, nie blokuje startu strony
 const Lanyard = lazy(() => import("../components/Lanyard"));
 
@@ -22,7 +19,6 @@ export default function About() {
   const firstName = CONTACT.name.split(" ")[0];
   const isClient = useIsClient();
 
-  // grafiki karty rysowane na canvasie — przerysowywane, gdy zmienią się teksty (język)
   useEffect(() => {
     let alive = true;
     buildCardFaces({

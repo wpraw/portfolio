@@ -2,11 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { CONTENT, type Lang } from "./data";
 import { langFromPath, LanguageContext, pathFor, STORAGE_KEY } from "./i18n";
 
-/* Język wynika z adresu (/ = PL, /en/ = EN), więc HTML z prerenderu i pierwszy render
-   w przeglądarce są identyczne. Przełącznik zmienia adres (pushState) i zapamiętuje wybór —
-   przy kolejnej wizycie main.tsx przekieruje na zapisany język.
-   Celowo bez przekierowań po navigator.languages: Googlebot ma en-US
-   i nigdy nie zobaczyłby polskiej wersji. */
+/* Bez przekierowań po navigator.languages: Googlebot ma en-US i nie zobaczyłby wersji PL. */
 
 export function LanguageProvider({ initialLang, children }: { initialLang: Lang; children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(initialLang);
@@ -18,7 +14,6 @@ export function LanguageProvider({ initialLang, children }: { initialLang: Lang;
     document.querySelector('meta[name="description"]')?.setAttribute("content", meta.description);
   }, [lang]);
 
-  // Wstecz / Dalej między / i /en/
   useEffect(() => {
     const onPop = () => setLangState(langFromPath(window.location.pathname));
     window.addEventListener("popstate", onPop);

@@ -1,7 +1,3 @@
-/* Prerender po `vite build`: wstawia wyrenderowany HTML i tagi <head> do każdej
-   wersji językowej (dist/index.html = PL, dist/en/index.html = EN) i generuje
-   sitemap.xml, robots.txt oraz llms.txt. Wejście SSR (dist-ssr) usuwa po sobie. */
-
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -14,11 +10,8 @@ const ssr = await import(pathToFileURL(path.join(ssrDir, "entry-server.js")).hre
 const { render, buildHead, buildSitemap, buildRobots, buildLlmsTxt, LANGS, pathFor, DEFAULT_SITE_URL } = ssr;
 
 const site = (process.env.SITE_URL || process.env.URL || DEFAULT_SITE_URL).replace(/\/+$/, "");
-if (site === DEFAULT_SITE_URL) {
-  console.warn(`\n⚠  SITE_URL nie ustawiony — używam ${site}. Wpisz domenę w src/site.ts albo ustaw zmienną SITE_URL.\n`);
-}
 
-/** podmiana dokładnie jednego miejsca; funkcja zamiast stringa, żeby "$" w treści nie był wzorcem */
+// funkcja zamiast stringa, żeby "$" w treści nie był wzorcem
 function inject(html, marker, value) {
   if (!html.includes(marker)) throw new Error(`Brak znacznika ${marker} w dist/index.html`);
   return html.replace(marker, () => value);

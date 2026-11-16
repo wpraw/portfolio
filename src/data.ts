@@ -34,11 +34,9 @@ export interface Content {
     title: string;
     /** meta description i opis w danych strukturalnych — ok. 150 znaków */
     description: string;
-    /** og:locale, np. pl_PL */
     ogLocale: string;
   };
   role: string;
-  /** krótko, czym się zajmuję — w H1 (dla czytników i wyszukiwarek) i w JSON-LD */
   tagline: string;
   location: string;
   sections: { id: string; label: string }[];
@@ -63,7 +61,6 @@ export interface Content {
     titleBlock: { drawn: string; sheet: string; scale: string; rev: string };
   };
   portfolio: { heading: string; more: string; clients: string };
-  /** oferta dla klientów freelance — te same treści trafiają do JSON-LD (usługi, FAQPage) i llms.txt */
   services: {
     heading: string;
     intro: string;

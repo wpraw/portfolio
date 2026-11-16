@@ -2,11 +2,6 @@ import { IconArrowRight, IconPlus } from "@tabler/icons-react";
 import { useId, useState } from "react";
 import { useLanguage } from "../i18n";
 
-/* Oferta dla klientów: po lewej wstęp, wycena i przebieg współpracy, w środku usługi,
-   po prawej FAQ. FAQ to akordeon (jedno pytanie otwarte naraz) — odpowiedzi są w HTML także
-   zwinięte, więc czytają je Google i boty AI; ta sama treść idzie do JSON-LD (FAQPage) i llms.txt.
-   Klucze list = indeksy, żeby zmiana języka nie remountowała elementów z animacjami GSAP. */
-
 // ta sama krzywa co szuflady w Portfolio
 const EASE = "ease-[cubic-bezier(0.32,0,0.12,1)]";
 
@@ -29,7 +24,6 @@ export default function Services({ onNavigate }: { onNavigate: (id: string) => v
       </h2>
 
       <div className="relative z-10 grid h-full grid-cols-[1fr_1.2fr_1fr] gap-[5vw] px-[6vw] pt-16 max-[1000px]:pb-12 touch:h-auto touch:grid-cols-1 touch:gap-14 touch:px-[8vw] touch:pt-24 touch:pb-[34vw] touch:md:grid-cols-2 touch:md:pb-[22vw]">
-        {/* wstęp + przebieg współpracy */}
         <div data-enter="up" className="self-center">
           <p className="font-hand text-4xl text-paper/70 md:text-5xl">{s.heading}</p>
           <span className="mt-6 block h-px w-24 bg-[#7ea1e8]" />
@@ -61,7 +55,6 @@ export default function Services({ onNavigate }: { onNavigate: (id: string) => v
           </ol>
         </div>
 
-        {/* usługi */}
         <div data-enter="up" className="self-center">
           <h3 className="font-hand text-4xl text-paper/90 md:text-5xl">{s.offerTitle}</h3>
           <ul className="mt-8 grid grid-cols-2 gap-x-10 gap-y-8 touch:max-md:grid-cols-1">
@@ -74,7 +67,6 @@ export default function Services({ onNavigate }: { onNavigate: (id: string) => v
           </ul>
         </div>
 
-        {/* FAQ — przy niskim oknie lista przewija się zamiast ucinać */}
         <div
           data-enter="up"
           className="flex max-h-full min-h-0 flex-col self-center pt-4 pb-6 touch:max-h-none touch:md:col-span-2"
@@ -103,7 +95,6 @@ export default function Services({ onNavigate }: { onNavigate: (id: string) => v
                       }`}
                     />
                   </button>
-                  {/* wysokość: grid-rows 0fr ↔ 1fr (jak szuflady w Portfolio), treść dojeżdża opacity z opóźnieniem */}
                   <div
                     id={`${uid}-a${i}`}
                     role="region"
