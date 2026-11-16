@@ -5,6 +5,25 @@ import type { Content, Lang } from "./data";
    tylko dla modułów, które eksportują wyłącznie komponenty. */
 
 export const LANGS: readonly Lang[] = ["pl", "en"];
+export const STORAGE_KEY = "lang";
+
+export const isLang = (value: unknown): value is Lang => LANGS.includes(value as Lang);
+
+export const pathFor = (lang: Lang) => (lang === "pl" ? "/" : `/${lang}/`);
+
+export function langFromPath(pathname: string): Lang {
+  const first = pathname.split("/")[1]?.toLowerCase();
+  return isLang(first) ? first : "pl";
+}
+
+export function readSavedLang(): Lang | null {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return isLang(saved) ? saved : null;
+  } catch {
+    return null;
+  }
+}
 
 interface LanguageContextValue {
   lang: Lang;

@@ -11,6 +11,7 @@ export default function Portfolio() {
 
   return (
     <section
+      id="portfolio"
       style={{ "--content-w": contentW } as CSSProperties}
       className="panel relative flex h-screen w-screen shrink-0 touch:h-svh touch:w-full touch:max-[1000px]:h-auto touch:max-[1000px]:min-h-svh flex-col overflow-hidden bg-olive px-5 pb-6 pt-20 max-[1000px]:pb-16 md:px-16 md:pt-24"
     >

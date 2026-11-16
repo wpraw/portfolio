@@ -2,16 +2,11 @@ import { IconArrowRight, IconCircleHalfVertical } from "@tabler/icons-react";
 import { CONTACT, MARQUEE } from "../data";
 import { useLanguage } from "../i18n";
 
-/* Stylizacja na blueprint: papier milimetrowy, ramka arkusza ze strefami
-   (1–6 / A–D), linie wymiarowe nad kolumnami, węzły na osi czasu,
-   podziałka pod paskami języków i tabliczka rysunkowa obok pasa logotypów.
-   Klucze list = indeksy, żeby zmiana języka nie remountowała
-   elementów z animacjami GSAP (np. .lang-bar). */
+/* Klucze list = indeksy, żeby zmiana języka nie remountowała elementów z animacjami GSAP (np. .lang-bar). */
 
 const ZONES_X = [1, 2, 3, 4, 5, 6];
 const ZONES_Y = ["A", "B", "C", "D"];
 
-// L-kształtne znaczniki narożników ramki
 const CORNERS = [
   "-left-2 -top-2 border-l border-t",
   "-right-2 -top-2 border-r border-t",
@@ -25,7 +20,7 @@ export default function Resume() {
   const pad = (n: number) => String(n).padStart(2, "0");
 
   return (
-    <section className="panel relative flex h-screen w-[140vw] shrink-0 flex-col overflow-hidden bg-royal max-[1000px]:pb-12 md:w-screen touch:h-auto touch:min-h-svh touch:w-full">
+    <section id="resume" className="panel relative flex h-screen w-[140vw] shrink-0 flex-col overflow-hidden bg-royal max-[1000px]:pb-12 md:w-screen touch:h-auto touch:min-h-svh touch:w-full">
       <div aria-hidden className="blueprint-grid pointer-events-none absolute inset-0" />
 
       {/* bez data-parallax — na blueprincie tytuł stoi w miejscu razem z arkuszem */}
@@ -42,7 +37,6 @@ export default function Resume() {
           {CORNERS.map((c) => (
             <span key={c} className={`absolute h-3 w-3 border-paper/60 ${c}`} />
           ))}
-          {/* strefy arkusza: cyfry u góry, litery z lewej, kreski na granicach */}
           {ZONES_X.map((n, i) => (
             <span key={n}>
               <span className="absolute top-1 -translate-x-1/2" style={{ left: `${((i + 0.5) / ZONES_X.length) * 100}%` }}>
@@ -95,7 +89,6 @@ export default function Resume() {
             </div>
           </div>
 
-          {/* węzły osi czasu siedzą na lewej krawędzi kolumny */}
           <div data-enter="up" className="border-l border-paper/25 pl-5 md:pl-8">
             <p aria-hidden className="dim mb-3 font-code text-[9px] tracking-[0.3em] text-paper/40">DET. B</p>
             <h3 className="font-hand text-3xl text-paper md:text-4xl">{t.resume.experienceTitle}</h3>
@@ -140,7 +133,6 @@ export default function Resume() {
         </div>
       </div>
 
-      {/* pas logotypów (infinite marquee) + tabliczka rysunkowa po prawej */}
       <div data-enter="up" className="relative z-10 flex border-t border-paper/20 bg-ink/30">
         <div className="min-w-0 flex-1 overflow-hidden py-5">
           <div className="marquee flex w-max gap-14 whitespace-nowrap px-7">
@@ -162,7 +154,8 @@ export default function Resume() {
           ].map(([label, value]) => (
             <div key={label} className="flex flex-col justify-center px-4">
               <dt className="text-[9px] tracking-[0.25em] text-paper/40">{label}</dt>
-              <dd className="text-[11px] tracking-widest text-paper/80">{value}</dd>
+              {/* rok z buildu (prerender) może różnić się od roku w przeglądarce */}
+              <dd suppressHydrationWarning className="text-[11px] tracking-widest text-paper/80">{value}</dd>
             </div>
           ))}
         </dl>

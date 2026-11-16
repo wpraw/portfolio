@@ -1,21 +1,24 @@
 import { IconRotateClockwise } from "@tabler/icons-react";
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState, useSyncExternalStore } from "react";
 import { buildCardFaces, type CardFaces } from "../components/cardFaces";
 import { CONTACT, PHOTO } from "../data";
 import { useLanguage } from "../i18n";
 
-/* Po lewej bio i fakty, w środku identyfikator na smyczy (Lanyard — można go złapać,
-   rzucić, kliknąć, żeby się odwrócił), po prawej "Jak pracuję". */
-
 // Lanyard ciągnie three.js (~550 KB) — osobny plik, ładowany w tle, nie blokuje startu strony
 const Lanyard = lazy(() => import("../components/Lanyard"));
+
+// false w prerenderze i podczas hydracji, potem true — karta (WebGL) renderuje się tylko w przeglądarce,
+// bo renderToString nie umie poczekać na leniwy import
+const noop = () => () => {};
+const useIsClient = () =>
+  useSyncExternalStore(noop, () => true, () => false);
 
 export default function About() {
   const { t } = useLanguage();
   const [faces, setFaces] = useState<Partial<CardFaces>>({});
   const firstName = CONTACT.name.split(" ")[0];
+  const isClient = useIsClient();
 
-  // grafiki karty rysowane na canvasie — przerysowywane, gdy zmienią się teksty (język)
   useEffect(() => {
     let alive = true;
     buildCardFaces({
@@ -35,7 +38,7 @@ export default function About() {
   }, [t.about.photo, t.about.strap, t.role, t.location]);
 
   return (
-    <section className="panel relative h-screen w-[220vw] shrink-0 overflow-hidden bg-slate md:w-[150vw] touch:h-auto touch:w-full">
+    <section id="about" className="panel relative h-screen w-[220vw] shrink-0 overflow-hidden bg-slate md:w-[150vw] touch:h-auto touch:w-full">
       <h2
         data-parallax="0.35"
         className="ghost-title absolute bottom-4 left-[10vw] text-[22vw] font-bold uppercase md:text-[16vw]"
@@ -52,18 +55,20 @@ export default function About() {
           {t.about.hint}
           <IconRotateClockwise aria-hidden stroke={1.5} className="h-[0.8em] w-[0.8em]" />
         </p>
-        <Suspense fallback={null}>
-          <Lanyard
-            frontImage={faces.front}
-            backImage={faces.back}
-            strapImage={faces.strap}
-            cardColor="#05172f"
-            strapColor="#05207f"
-            size={0.5}
-            strapLength={0.45}
-            inertia={1}
-          />
-        </Suspense>
+        {isClient && (
+          <Suspense fallback={null}>
+            <Lanyard
+              frontImage={faces.front}
+              backImage={faces.back}
+              strapImage={faces.strap}
+              cardColor="#05172f"
+              strapColor="#05207f"
+              size={0.5}
+              strapLength={0.45}
+              inertia={1}
+            />
+          </Suspense>
+        )}
       </div>
 
       {/* siatka nie łapie kursora — tylko kolumny z treścią, reszta trafia do karty */}

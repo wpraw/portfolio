@@ -11,20 +11,13 @@ import Home from "./panels/Home";
 import About from "./panels/About";
 import Resume from "./panels/Resume";
 import Portfolio from "./panels/Portfolio";
+import Services from "./panels/Services";
 import Contact from "./panels/Contact";
 import { isTouch, MOUSE_QUERY, TOUCH_QUERY } from "./touch";
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, CustomEase, useGSAP);
 
 const NAV_EASE = CustomEase.create("navEase", "0.32, 0, 0.12, 1");
-
-/* Dwa tryby przewijania (gsap.matchMedia):
-   - mysz / touchpad: pionowy scroll napędza poziomą podróż —
-     wrapper jest pinowany, tor (track) jedzie w lewo (scrub),
-     kontenery [data-enter] wjeżdżają do widoku i znikają przy wyjeździe
-     (ScrollTrigger z containerAnimation), tytuły-duchy [data-parallax] płyną wolniej niż tor;
-   - urządzenie dotykowe: sekcje leżą jedna pod drugą i strona przewija się zwyczajnie w pionie
-     (układ przełączają klasy touch: w panelach). */
 
 type EnterDir = "up" | "down" | "left" | "right";
 
@@ -36,7 +29,7 @@ const ENTER_FROM: Record<EnterDir, { x?: number; y?: number }> = {
 };
 
 export default function App() {
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const stRef = useRef<ScrollTrigger | null>(null);
   const [active, setActive] = useState(0);
@@ -47,7 +40,6 @@ export default function App() {
       const panels = gsap.utils.toArray<HTMLElement>(".panel");
       const mm = gsap.matchMedia();
 
-      // --- mysz: pozioma podróż ---
       mm.add(MOUSE_QUERY, () => {
         const distance = () => track.scrollWidth - window.innerWidth;
 
@@ -61,7 +53,6 @@ export default function App() {
             end: () => "+=" + distance(),
             invalidateOnRefresh: true,
             onUpdate: (self) => {
-              // aktywna sekcja = panel pod środkiem ekranu
               const x = self.progress * distance() + window.innerWidth / 2;
               const idx = panels.findIndex(
                 (p) => x >= p.offsetLeft && x < p.offsetLeft + p.offsetWidth
@@ -144,7 +135,6 @@ export default function App() {
         };
       });
 
-      // --- dotyk: zwykły pionowy scroll ---
       mm.add(TOUCH_QUERY, () => {
         panels.forEach((p, i) => {
           ScrollTrigger.create({
@@ -188,8 +178,7 @@ export default function App() {
           });
         });
 
-        // wysokość treści się zmienia (szuflady portfolio, zmiana języka) — pozycje triggerów trzeba przeliczyć;
-        // odczekanie, aż animacja szuflady się skończy, żeby nie przeliczać w każdej klatce
+        // przeliczenie triggerów dopiero po zakończeniu animacji szuflady, nie w każdej klatce
         let timer = 0;
         const ro = new ResizeObserver(() => {
           clearTimeout(timer);
@@ -226,28 +215,38 @@ export default function App() {
         { scaleX: 1, duration: 1.2, repeat: -1, yoyo: true, ease: "power2.inOut" }
       );
 
-      return () => mm.revert();
+      // wrapper ma overflow-clip, więc przeglądarka sama nie przewinie do /#sekcji
+      const hashId = window.location.hash.slice(1);
+      let raf = 0;
+      if (panels.some((p) => p.id === hashId)) {
+        raf = requestAnimationFrame(() => goTo(hashId));
+      }
+
+      return () => {
+        cancelAnimationFrame(raf);
+        mm.revert();
+      };
     },
     { scope: wrapperRef }
   );
 
-  const goTo = (i: number) => {
+  function goTo(id: string) {
     const track = trackRef.current;
     if (!track) return;
-    const panels = track.querySelectorAll<HTMLElement>(".panel");
+    const panel = Array.from(track.querySelectorAll<HTMLElement>(".panel")).find((p) => p.id === id);
+    if (!panel) return;
 
     let target: number;
     if (isTouch()) {
-      target = panels[i].getBoundingClientRect().top + window.scrollY;
+      target = panel.getBoundingClientRect().top + window.scrollY;
     } else {
       const st = stRef.current;
       if (!st) return;
       const distance = track.scrollWidth - window.innerWidth;
-      const progress = Math.min(panels[i].offsetLeft / distance, 1);
+      const progress = Math.min(panel.offsetLeft / distance, 1);
       target = st.start + progress * (st.end - st.start);
     }
 
-    // czas zależny od dystansu: bliski panel ~0.8 s, drugi koniec ~1.6 s
     const total = Math.max(1, ScrollTrigger.maxScroll(window));
     const span = Math.min(1, Math.abs(target - window.scrollY) / total);
     gsap.to(window, {
@@ -256,25 +255,25 @@ export default function App() {
       ease: NAV_EASE,
       overwrite: "auto",
     });
-  };
+  }
 
   return (
     <div className="noise">
       <Nav active={active} onNavigate={goTo} />
 
-      <div ref={wrapperRef} className="h-screen overflow-hidden touch:h-auto touch:overflow-visible">
+      <main ref={wrapperRef} className="h-screen overflow-clip touch:h-auto touch:overflow-visible">
         <div ref={trackRef} className="flex h-full w-max touch:h-auto touch:w-full touch:flex-col">
           <Home onNavigate={goTo} />
           <About />
           <Resume />
           <Portfolio />
+          <Services onNavigate={goTo} />
           <Contact />
         </div>
-      </div>
+      </main>
 
       <Footer />
 
-      {/* pasek postępu podróży — do 1000px leży na górnej krawędzi stopki */}
       <div className="fixed bottom-0 left-0 z-50 h-[3px] w-full bg-paper/10 max-[1000px]:bottom-12">
         <div data-progress className="h-full w-full origin-left scale-x-0 bg-royal" />
       </div>

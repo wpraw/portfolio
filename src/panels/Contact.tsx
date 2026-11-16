@@ -6,7 +6,7 @@ export default function Contact() {
   const { t } = useLanguage();
 
   return (
-    <section className="panel relative flex h-screen w-screen shrink-0 touch:h-lvh touch:w-full items-center justify-center overflow-hidden bg-ink">
+    <section id="contact" className="panel relative flex h-screen w-screen shrink-0 touch:h-lvh touch:w-full items-center justify-center overflow-hidden bg-ink">
       <SideRays
         className="!absolute inset-0"
         rayColor1="#e9e7e1"
@@ -33,7 +33,7 @@ export default function Contact() {
           {t.contact.sub}
         </p>
 
-        <div data-enter="up" className="mt-14 flex flex-col items-center gap-6 md:flex-row md:justify-center md:gap-14">
+        <address data-enter="up" className="mt-14 flex flex-col items-center gap-6 not-italic md:flex-row md:justify-center md:gap-14">
           <a
             href={`tel:${CONTACT.phone.replace(/\s/g, "")}`}
             className="font-code text-lg tracking-[0.2em] text-paper/70 transition hover:text-paper md:text-2xl"
@@ -47,9 +47,10 @@ export default function Contact() {
           >
             {CONTACT.email}
           </a>
-        </div>
+        </address>
 
-        <p data-enter="up" className="mt-16 font-code text-[10px] uppercase tracking-[0.4em] text-paper/30">
+        {/* rok z buildu (prerender) może różnić się od roku w przeglądarce */}
+        <p data-enter="up" suppressHydrationWarning className="mt-16 font-code text-[10px] uppercase tracking-[0.4em] text-paper/30">
           © {new Date().getFullYear()} {CONTACT.name} · {t.location}
         </p>
       </div>

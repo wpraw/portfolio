@@ -2,8 +2,6 @@ import { CONTACT } from "../data";
 import LanguageSwitch from "./LanguageSwitch";
 import SocialLinks from "./SocialLinks";
 
-/* Tylko do 1000px — tam nagłówek mieści same sekcje. */
-
 export default function Footer() {
   return (
     <footer className="fixed inset-x-0 bottom-0 z-50 flex h-12 items-center justify-between bg-steel/90 px-5 min-[1001px]:hidden">

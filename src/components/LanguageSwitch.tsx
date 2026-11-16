@@ -1,4 +1,4 @@
-import { LANGS, useLanguage } from "../i18n";
+import { LANGS, pathFor, useLanguage } from "../i18n";
 
 export default function LanguageSwitch() {
   const { lang, setLang, t } = useLanguage();
@@ -8,15 +8,22 @@ export default function LanguageSwitch() {
       {LANGS.map((l, i) => (
         <span key={l} className="flex items-center">
           {i > 0 && <span className="text-paper/30">/</span>}
-          <button
-            onClick={() => setLang(l)}
-            aria-pressed={lang === l}
+          <a
+            href={pathFor(l)}
+            hrefLang={l}
+            lang={l}
+            aria-current={lang === l ? "page" : undefined}
+            onClick={(e) => {
+              if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+              e.preventDefault();
+              setLang(l);
+            }}
             className={`-my-2 px-2.5 py-2 uppercase transition-colors ${
               lang === l ? "text-paper" : "text-paper/50 hover:text-paper"
             }`}
           >
             {l}
-          </button>
+          </a>
         </span>
       ))}
     </div>
