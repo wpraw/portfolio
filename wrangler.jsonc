@@ -1,10 +1,21 @@
 {
   "name": "portfolio",
   "compatibility_date": "2026-11-01",
+  "main": "worker/index.ts",
   "assets": {
     "directory": "./dist",
+    "binding": "ASSETS",
     "html_handling": "auto-trailing-slash",
-    "not_found_handling": "404-page"
+    "not_found_handling": "404-page",
+    // Worker loguje wejścia; pliki z buildu (js/css/obrazki) idą prosto z CDN
+    "run_worker_first": ["/*", "!/assets/*", "!/favicon.svg", "!/og.png"]
+  },
+  // Statystyki wejść (zapytania: npm run stats)
+  "analytics_engine_datasets": [{ "binding": "VISITS", "dataset": "portfolio_visits" }],
+  "observability": {
+    "enabled": true,
+    // bez automatycznych logów żądania (zawierają nagłówki); logujemy sami, bez IP
+    "logs": { "enabled": true, "invocation_logs": false }
   },
   "previews": {}
 }
