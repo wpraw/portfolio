@@ -1,0 +1,7 @@
+# Linki śledzące źródło wejścia. Ścieżka zostaje w statystykach ruchu strefy
+# (Analytics & Logs → HTTP Traffic → Paths). 302, a nie 301, żeby przeglądarka
+# nie zapamiętała przekierowania i każde kliknięcie trafiało do Cloudflare.
+/cv        /  302
+/li        /  302
+/ref       /  302
+/ref/*     /  302
